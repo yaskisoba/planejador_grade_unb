@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+*.pyc
+elm-stuff/
+node_modules/
+frontend/build/
