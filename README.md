@@ -6,7 +6,7 @@ pré-requisitos, bloqueios e limites de créditos. A pontuação é
 `7 × janelas + dias no campus`. Quanto menor, melhor.
 
 O motor usa uma base demonstrativa de quatro disciplinas e oito turmas.
-A API Python e a interface Elm estão previstas para as próximas etapas.
+A API Python (`backend/server.py`) liga a interface Elm ao motor Prolog.
 
 ## Estrutura
 
@@ -15,11 +15,34 @@ A API Python e a interface Elm estão previstas para as próximas etapas.
 | `prolog/regras.pl` | Restrições de montagem da grade com CLP(FD) | P1 |
 | `prolog/ranking.pl` | Cálculo da pontuação e seleção das melhores grades | P2 |
 | `prolog/turmas.pl` | Base demonstrativa de disciplinas, turmas e pré-requisitos | P3 |
-| `backend/` | Pasta reservada para a API Python | P3 |
+| `backend/server.py` | API FastAPI que consulta o Prolog via janus | P3 |
 | `frontend/src/` | Pasta reservada para a interface Elm | P4, P5, P6 |
 | `frontend/tests/` | Pasta reservada para elm-test | P7 |
 | `tests/prolog/` | Testes PlUnit de regras e ranking | P7 |
 | `docs/` | Pasta reservada para a apresentação | P7 |
+
+## API
+
+Requisitos: SWI-Prolog 9.1.22 ou mais novo com `swipl` no PATH, e
+[uv](https://docs.astral.sh/uv/). Na pasta `backend/`:
+
+```sh
+uv sync
+uv run start
+```
+
+O servidor sobe em http://localhost:8000. A documentação interativa fica em
+http://localhost:8000/docs. Se a pasta `frontend/build/` existir, o servidor
+também entrega a interface Elm compilada em `/`.
+
+| Rota | Entrada | Saída |
+| --- | --- | --- |
+| `POST /api/gerar-grades` | `{"cursadas": [...], "desejadas": [...], "bloqueados": [...], "peso_janelas": 3, "peso_dias": 2}` | `{"grades": [{"rank", "score", "janelas", "dias_campus", "turmas"}]}` |
+| `GET /api/saude` | nada | `{"status": "ok"}` |
+
+`peso_janelas` e `peso_dias` são aceitos, mas o motor usa sempre a pontuação
+`7 × janelas + dias`. Sem grade compatível, a resposta é `{"grades": []}`.
+Uma lista `desejadas` vazia devolve 400, e tipos errados devolvem 422.
 
 ## Testes PlUnit
 
