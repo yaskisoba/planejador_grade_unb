@@ -1,0 +1,381 @@
+/* Estilos de GradeView.elm. Todas as classes começam com "grade". */
+
+.grade {
+  --grade-texto: #1c2733;
+  --grade-suave: #55626f;
+  --grade-linha: #d9e0e6;
+  --grade-fundo: #ffffff;
+  --grade-apoio: #f4f6f8;
+  --grade-destaque: #003e7e;
+  color: var(--grade-texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.grade *,
+.grade *::before {
+  box-sizing: border-box;
+}
+
+.grade ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.grade-titulo {
+  font-size: 1.375rem;
+  margin: 0 0 0.75rem;
+}
+
+.grade-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Sem resultados e alertas */
+
+.grade-vazia {
+  background: var(--grade-apoio);
+  border: 1px solid var(--grade-linha);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.grade-vazia p {
+  margin: 0 0 0.5rem;
+}
+
+.grade-vazia-titulo {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.grade .grade-vazia ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.grade-alerta {
+  background: #fdecea;
+  border: 1px solid #b3261e;
+  border-radius: 8px;
+  color: #7a1712;
+  margin: 0 0 1rem;
+  padding: 0.625rem 0.875rem;
+}
+
+/* Seletor */
+
+.grade-seletor {
+  border: 0;
+  margin: 0 0 1.25rem;
+  min-width: 0;
+  padding: 0;
+}
+
+.grade-legenda {
+  color: var(--grade-suave);
+  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+  padding: 0;
+}
+
+.grade-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.grade-opcao {
+  cursor: pointer;
+  flex: 1 1 9.5rem;
+  max-width: 16rem;
+  position: relative;
+}
+
+.grade-opcao input {
+  cursor: pointer;
+  height: 100%;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.grade-opcao-corpo {
+  background: var(--grade-fundo);
+  border: 1px solid var(--grade-linha);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0.5rem 0.75rem;
+}
+
+.grade-opcao-titulo {
+  font-weight: 600;
+}
+
+.grade-opcao-detalhe {
+  color: var(--grade-suave);
+  font-size: 0.8125rem;
+}
+
+.grade-opcao:hover .grade-opcao-corpo {
+  border-color: var(--grade-destaque);
+}
+
+.grade-opcao input:checked + .grade-opcao-corpo {
+  background: var(--grade-destaque);
+  border-color: var(--grade-destaque);
+  color: #ffffff;
+}
+
+.grade-opcao input:checked + .grade-opcao-corpo .grade-opcao-detalhe {
+  color: #dce8f4;
+}
+
+.grade-opcao input:focus-visible + .grade-opcao-corpo,
+.grade-rolagem:focus-visible {
+  outline: 3px solid #f2a900;
+  outline-offset: 2px;
+}
+
+/* Resumo */
+
+.grade-resumo {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.grade-resumo-titulo,
+.grade-turmas-titulo {
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.grade-metricas {
+  color: var(--grade-suave);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+/* Tabela */
+
+.grade-rolagem {
+  border: 1px solid var(--grade-linha);
+  border-radius: 8px;
+  overflow-x: auto;
+  /* Contém o título oculto da tabela, que é posicionado. */
+  position: relative;
+}
+
+.grade-tabela {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 46rem;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.grade-tabela th,
+.grade-tabela td {
+  border-bottom: 1px solid var(--grade-linha);
+  border-right: 1px solid var(--grade-linha);
+  /* Em tabelas, height funciona como altura mínima e permite que a aula
+     preencha a célula inteira. */
+  height: 2.75rem;
+  padding: 0;
+}
+
+.grade-tabela tr > :last-child {
+  border-right: 0;
+}
+
+.grade-tabela tbody:last-child tr:last-child > * {
+  border-bottom: 0;
+}
+
+.grade-tabela thead th {
+  background: var(--grade-apoio);
+  font-size: 0.875rem;
+  height: 2.25rem;
+}
+
+.grade-tabela thead th:first-child {
+  left: 0;
+  position: sticky;
+  width: 6.5rem;
+  z-index: 1;
+}
+
+.grade-tabela .grade-turno th {
+  background: var(--grade-apoio);
+  color: var(--grade-suave);
+  font-size: 0.75rem;
+  height: 1.5rem;
+  padding: 0 0.625rem;
+  text-align: left;
+}
+
+.grade-tabela .grade-periodo {
+  background: var(--grade-fundo);
+  font-weight: 400;
+  left: 0;
+  position: sticky;
+  z-index: 1;
+}
+
+.grade-periodo-codigo,
+.grade-periodo-hora {
+  display: block;
+  line-height: 1.2;
+}
+
+.grade-periodo-codigo {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.grade-periodo-hora {
+  color: var(--grade-suave);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.grade-tabela .grade-janela {
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff6df,
+    #fff6df 6px,
+    #ffefc4 6px,
+    #ffefc4 12px
+  );
+  color: #6b4e00;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.grade-tabela .grade-ocupada {
+  padding: 3px;
+  vertical-align: top;
+}
+
+.grade-aula {
+  border-left: 4px solid var(--grade-cor-borda);
+  border-radius: 4px;
+  background: var(--grade-cor-fundo);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-wrap: anywhere;
+  padding: 0.25rem 0.5rem;
+}
+
+.grade-aula-codigo {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.grade-aula-nome,
+.grade-aula-detalhe {
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.grade-tabela .grade-choque {
+  background: #fdecea;
+  box-shadow: inset 0 0 0 2px #b3261e;
+}
+
+.grade-choque .grade-aula {
+  height: auto;
+  margin: 3px;
+}
+
+.grade-choque-rotulo {
+  color: #7a1712;
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0 0.375rem;
+}
+
+/* Turmas */
+
+.grade-turmas {
+  margin-top: 1.25rem;
+}
+
+.grade-turmas ul {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+  margin-top: 0.5rem;
+}
+
+.grade-turma {
+  background: var(--grade-fundo);
+  border: 1px solid var(--grade-linha);
+  border-left: 4px solid var(--grade-cor-borda);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.grade-turma-codigo {
+  font-weight: 600;
+}
+
+.grade-turma-professor,
+.grade-turma-horarios {
+  color: var(--grade-suave);
+}
+
+.grade-turma-horarios span {
+  display: block;
+}
+
+/* Cores das disciplinas. O código também aparece, então a cor é só um apoio. */
+
+.grade-cor-1 { --grade-cor-fundo: #e1eefb; --grade-cor-borda: #1f6fb8; }
+.grade-cor-2 { --grade-cor-fundo: #e0f3e6; --grade-cor-borda: #23804a; }
+.grade-cor-3 { --grade-cor-fundo: #fde8dc; --grade-cor-borda: #c2571a; }
+.grade-cor-4 { --grade-cor-fundo: #efe6fa; --grade-cor-borda: #7446b0; }
+.grade-cor-5 { --grade-cor-fundo: #fbe3ee; --grade-cor-borda: #b5316f; }
+.grade-cor-6 { --grade-cor-fundo: #dcf2f2; --grade-cor-borda: #14787d; }
+.grade-cor-7 { --grade-cor-fundo: #f1ecd6; --grade-cor-borda: #7d6a12; }
+.grade-cor-8 { --grade-cor-fundo: #e8eaee; --grade-cor-borda: #4d5a6b; }
+
+@media print {
+  .grade-seletor {
+    display: none;
+  }
+
+  .grade-rolagem {
+    overflow: visible;
+  }
+
+  .grade-tabela {
+    min-width: 0;
+  }
+
+  .grade-aula,
+  .grade-janela {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
