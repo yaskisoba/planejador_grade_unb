@@ -5,6 +5,7 @@ import janus_swi as janus
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -81,6 +82,11 @@ def gerar_grades(req: Requisicao):
     # Lista vazia é resposta válida: o Elm mostra "nenhuma grade compatível".
     return {"grades": grades}
 
+
+# Precisa vir DEPOIS das rotas /api, senão o "/" captura tudo.
+FRONTEND = ROOT / "frontend" / "build"
+if FRONTEND.is_dir():
+    app.mount("/", StaticFiles(directory=FRONTEND, html=True), name="frontend")
 
 
 def main():
