@@ -20,8 +20,25 @@ docs/                P7  apresentação
   `7 × janelas + dias`; quanto menor, melhor.
 - **Base e testes:** base demonstrativa com 4 disciplinas e 8 turmas;
   47 testes Prolog aprovados (18 de regras e 29 de ranking).
+- **Interface Elm:** seleção de disciplinas cursadas e desejadas, grade clicável
+  para horários bloqueados e ciclo de requisição HTTP com estados de carregamento,
+  erro e resultados. O catálogo atual acompanha a base demonstrativa Prolog.
 
-A API Python e a interface Elm ainda serão implementadas.
+A API Python ainda será implementada. Até ela estar disponível, a interface pode
+ser compilada, mas o botão de geração não receberá uma resposta válida.
+
+## Interface Elm
+
+Requisito: Elm 0.19.1 e dependências definidas em `frontend/elm.json`.
+Na pasta `frontend`, compile a aplicação com:
+
+```sh
+elm make src/Main.elm --output=main.js
+```
+
+O fluxo de entrada envia `cursadas`, `desejadas`, `bloqueados`, `peso_janelas`
+e `peso_dias` para `POST /api/gerar-grades`. O backend deve responder com o
+formato `{"grades": [...]}` definido no cronograma do projeto.
 
 ## Como testar
 
