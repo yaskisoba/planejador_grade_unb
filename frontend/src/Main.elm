@@ -93,11 +93,13 @@ update msg model =
             alterarSelecao codigo False model
 
         AlternarBloqueio horario ->
+            let
+                pedido =
+                    model.requisicao
+            in
             ( { model
                 | requisicao =
-                    { model.requisicao
-                        | bloqueados = alternar horario model.requisicao.bloqueados
-                    }
+                    { pedido | bloqueados = alternar horario pedido.bloqueados }
                 , estado = Pronto
               }
             , Cmd.none
