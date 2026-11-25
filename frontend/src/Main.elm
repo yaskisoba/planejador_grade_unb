@@ -7,16 +7,19 @@ As opções de disciplinas refletem a pequena base demonstrativa atual em
 -}
 
 import Browser
-import Html exposing (Html, button, div, h1, h2, h3, input, label, p, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (checked, class, disabled, type_)
+import Codec exposing (Grade)
+import GradeView
+import Html exposing (Html, button, div, h1, h2, h3, input, label, node, p, table, tbody, td, text, th, thead, tr)
+import Html.Attributes exposing (checked, class, disabled, href, rel, type_)
 import Html.Events exposing (onCheck, onClick)
 import Http
-import Types exposing (Grade, Request, Section)
+import Types exposing (Request)
 
 
 type alias Model =
     { requisicao : Request
     , estado : Estado
+    , opcaoSelecionada : Int
     }
 
 
@@ -32,6 +35,7 @@ type Msg
     | AlternarCursada String
     | AlternarDesejada String
     | AlternarBloqueio String
+    | SelecionouOpcao Int
     | RecebeuResposta (Result Http.Error (List Grade))
 
 
@@ -54,7 +58,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { requisicao = requisicaoInicial, estado = Pronto }
+    ( { requisicao = requisicaoInicial, estado = Pronto, opcaoSelecionada = 0 }
     , Cmd.none
     )
 
@@ -106,10 +110,13 @@ update msg model =
             )
 
         RecebeuResposta (Ok grades) ->
-            ( { model | estado = Carregado grades }, Cmd.none )
+            ( { model | estado = Carregado grades, opcaoSelecionada = 0 }, Cmd.none )
 
         RecebeuResposta (Err erro) ->
             ( { model | estado = Falhou (mensagemErro erro) }, Cmd.none )
+
+        SelecionouOpcao opcao ->
+            ( { model | opcaoSelecionada = opcao }, Cmd.none )
 
 
 alterarSelecao : String -> Bool -> Model -> ( Model, Cmd Msg )
@@ -155,7 +162,7 @@ pedirGrades requisicao =
     Http.post
         { url = "/api/gerar-grades"
         , body = Http.jsonBody (Types.encodeRequest requisicao)
-        , expect = Http.expectJson RecebeuResposta Types.decodeGrades
+        , expect = Http.expectJson RecebeuResposta Codec.respostaDecoder
         }
 
 
@@ -188,7 +195,8 @@ view model =
             not (List.isEmpty model.requisicao.desejadas)
     in
     div [ class "app" ]
-        [ h1 [] [ text "Planejador de grade da UnB" ]
+        [ node "link" [ rel "stylesheet", href "/grade.css" ] []
+        , h1 [] [ text "Planejador de grade da UnB" ]
         , p [] [ text "Escolha as disciplinas e os períodos em que você não pode ter aula. O planejador buscará combinações sem conflitos." ]
         , h2 [] [ text "1. Disciplinas" ]
         , p [] [ text "Marque o que já cursou e o que deseja cursar. Uma disciplina não pode ficar nos dois grupos." ]
@@ -215,7 +223,7 @@ view model =
 
           else
             text ""
-        , viewEstado model.estado
+        , viewEstado model
         ]
 
 
@@ -319,9 +327,9 @@ viewCelula turno indice bloqueados ocupado ( dia, _ ) =
         ]
 
 
-viewEstado : Estado -> Html Msg
-viewEstado estado =
-    case estado of
+viewEstado : Model -> Html Msg
+viewEstado model =
+    case model.estado of
         Pronto ->
             p [] [ text "Ajuste os filtros e gere suas grades." ]
 
@@ -332,39 +340,8 @@ viewEstado estado =
             div [] [ h2 [] [ text "Não foi possível gerar as grades" ], p [] [ text detalhe ] ]
 
         Carregado grades ->
-            div []
-                [ h2 [] [ text (String.fromInt (List.length grades) ++ " grades recebidas") ]
-                , if List.isEmpty grades then
-                    p [] [ text "Nenhuma grade atende a esses critérios." ]
-
-                  else
-                    div [] (List.map viewResumoGrade grades)
-                ]
-
-
-viewResumoGrade : Grade -> Html Msg
-viewResumoGrade grade =
-    let
-        turmas =
-            String.join ", " (List.map resumoTurma grade.turmas)
-    in
-    div [ class "resultado-grade" ]
-        [ h3 [] [ text ("Opção " ++ String.fromInt grade.rank) ]
-        , p []
-            [ text
-                ("Pontuação "
-                    ++ String.fromInt grade.score
-                    ++ " · "
-                    ++ String.fromInt grade.janelas
-                    ++ " janelas · "
-                    ++ String.fromInt grade.diasCampus
-                    ++ " dias no campus"
-                )
-            ]
-        , p [] [ text ("Turmas: " ++ turmas) ]
-        ]
-
-
-resumoTurma : Section -> String
-resumoTurma turma =
-    turma.codigo ++ " " ++ turma.turma ++ " (" ++ String.join ", " turma.horarios ++ ")"
+            GradeView.view
+                { selecionada = model.opcaoSelecionada
+                , aoSelecionar = SelecionouOpcao
+                }
+                grades

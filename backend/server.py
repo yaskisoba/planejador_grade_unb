@@ -5,6 +5,7 @@ import janus_swi as janus
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -81,6 +82,11 @@ def gerar_grades(req: Requisicao):
 
     # Lista vazia é resposta válida: o Elm mostra "nenhuma grade compatível".
     return {"grades": grades}
+
+
+@app.get("/grade.css", include_in_schema=False)
+def estilos_grade() -> FileResponse:
+    return FileResponse(ROOT / "frontend" / "grade.css", media_type="text/css")
 
 
 # Precisa vir DEPOIS das rotas /api, senão o "/" captura tudo.

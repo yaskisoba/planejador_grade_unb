@@ -1,17 +1,8 @@
-module Types exposing
-    ( Grade
-    , Request
-    , Section
-    , decodeGrades
-    , encodeRequest
-    )
+module Types exposing (Request, encodeRequest)
 
-{-| Types shared by the application state and the input/results screens.
-
-The JSON field names follow the minimal contract in the project schedule.
+{-| Requisição da tela de entrada para a API de geração de grades.
 -}
 
-import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 
 
@@ -24,22 +15,6 @@ type alias Request =
     }
 
 
-type alias Section =
-    { codigo : String
-    , turma : String
-    , horarios : List String
-    }
-
-
-type alias Grade =
-    { rank : Int
-    , score : Int
-    , janelas : Int
-    , diasCampus : Int
-    , turmas : List Section
-    }
-
-
 encodeRequest : Request -> Encode.Value
 encodeRequest request =
     Encode.object
@@ -49,26 +24,3 @@ encodeRequest request =
         , ( "peso_janelas", Encode.int request.pesoJanelas )
         , ( "peso_dias", Encode.int request.pesoDias )
         ]
-
-
-decodeGrades : Decoder (List Grade)
-decodeGrades =
-    Decode.field "grades" (Decode.list gradeDecoder)
-
-
-gradeDecoder : Decoder Grade
-gradeDecoder =
-    Decode.map5 Grade
-        (Decode.field "rank" Decode.int)
-        (Decode.field "score" Decode.int)
-        (Decode.field "janelas" Decode.int)
-        (Decode.field "dias_campus" Decode.int)
-        (Decode.field "turmas" (Decode.list sectionDecoder))
-
-
-sectionDecoder : Decoder Section
-sectionDecoder =
-    Decode.map3 Section
-        (Decode.field "codigo" Decode.string)
-        (Decode.field "turma" Decode.string)
-        (Decode.field "horarios" (Decode.list Decode.string))
