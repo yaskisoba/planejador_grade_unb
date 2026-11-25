@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Grade semanal: demonstração</title>
+    <link rel="stylesheet" href="../grade.css">
+    <style>
+      body { margin: 0 auto; max-width: 72rem; padding: 1rem; background: #ffffff; }
+      .demo-respostas { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+      .demo-erro { white-space: pre-wrap; font-family: monospace; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../build/demo.js"></script>
+    <script>Elm.GradeDemo.init({ node: document.getElementById("app") });</script>
+  </body>
+</html>
