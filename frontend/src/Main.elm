@@ -1,17 +1,17 @@
 module Main exposing (main)
 
-{-| Shell da aplicação: modelo, mensagens, atualizações e integração HTTP.
+{-| Tela de entrada e ciclo de vida da aplicação.
 
-As telas de entrada e de visualização podem evoluir separadamente usando os
-tipos compartilhados de `Types`.
+As opções de disciplinas refletem a pequena base demonstrativa atual em
+`prolog/turmas.pl`. Quando a API fornecer catálogo, esta lista poderá vir dela.
 -}
 
 import Browser
-import Html exposing (Html, button, div, h1, h2, p, text)
-import Html.Attributes exposing (disabled, type_)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, h1, h2, h3, input, label, p, table, tbody, td, text, th, thead, tr)
+import Html.Attributes exposing (checked, class, disabled, type_)
+import Html.Events exposing (onCheck, onClick)
 import Http
-import Types exposing (Grade, Request)
+import Types exposing (Grade, Request, Section)
 
 
 type alias Model =
@@ -29,7 +29,17 @@ type Estado
 
 type Msg
     = GerarGrades
+    | AlternarCursada String
+    | AlternarDesejada String
+    | AlternarBloqueio String
     | RecebeuResposta (Result Http.Error (List Grade))
+
+
+type alias Disciplina =
+    { codigo : String
+    , nome : String
+    , creditos : Int
+    }
 
 
 main : Program () Model Msg
@@ -59,6 +69,15 @@ requisicaoInicial =
     }
 
 
+disciplinas : List Disciplina
+disciplinas =
+    [ { codigo = "FGA0158", nome = "Orientação a Objetos", creditos = 4 }
+    , { codigo = "FGA0210", nome = "Paradigmas de Programação", creditos = 4 }
+    , { codigo = "FGA0244", nome = "Projeto de Algoritmos", creditos = 4 }
+    , { codigo = "FGA0124", nome = "Engenharia de Requisitos", creditos = 4 }
+    ]
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -67,11 +86,66 @@ update msg model =
             , pedirGrades model.requisicao
             )
 
+        AlternarCursada codigo ->
+            alterarSelecao codigo True model
+
+        AlternarDesejada codigo ->
+            alterarSelecao codigo False model
+
+        AlternarBloqueio horario ->
+            ( { model
+                | requisicao =
+                    { model.requisicao
+                        | bloqueados = alternar horario model.requisicao.bloqueados
+                    }
+                , estado = Pronto
+              }
+            , Cmd.none
+            )
+
         RecebeuResposta (Ok grades) ->
             ( { model | estado = Carregado grades }, Cmd.none )
 
         RecebeuResposta (Err erro) ->
             ( { model | estado = Falhou (mensagemErro erro) }, Cmd.none )
+
+
+alterarSelecao : String -> Bool -> Model -> ( Model, Cmd Msg )
+alterarSelecao codigo ehCursada model =
+    let
+        pedido =
+            model.requisicao
+
+        cursadasNovas =
+            if ehCursada then
+                alternar codigo pedido.cursadas
+
+            else
+                List.filter ((/=) codigo) pedido.cursadas
+
+        desejadasNovas =
+            if ehCursada then
+                List.filter ((/=) codigo) pedido.desejadas
+
+            else
+                alternar codigo pedido.desejadas
+    in
+    ( { model
+        | requisicao =
+            { pedido | cursadas = cursadasNovas, desejadas = desejadasNovas }
+        , estado = Pronto
+      }
+    , Cmd.none
+    )
+
+
+alternar : a -> List a -> List a
+alternar item itens =
+    if List.member item itens then
+        List.filter ((/=) item) itens
+
+    else
+        itens ++ [ item ]
 
 
 pedirGrades : Request -> Cmd Msg
@@ -104,23 +178,142 @@ mensagemErro erro =
 
 view : Model -> Html Msg
 view model =
-    div []
+    let
+        ocupado =
+            model.estado == Carregando
+
+        pedidoValido =
+            not (List.isEmpty model.requisicao.desejadas)
+    in
+    div [ class "app" ]
         [ h1 [] [ text "Planejador de grade da UnB" ]
-        , p [] [ text "A interface Elm envia uma requisição ao backend Python, que consulta o planejador em Prolog." ]
+        , p [] [ text "Escolha as disciplinas e os períodos em que você não pode ter aula. O planejador buscará combinações sem conflitos." ]
+        , h2 [] [ text "1. Disciplinas" ]
+        , p [] [ text "Marque o que já cursou e o que deseja cursar. Uma disciplina não pode ficar nos dois grupos." ]
+        , viewDisciplinas model.requisicao ocupado
+        , h2 [] [ text "2. Horários bloqueados" ]
+        , p [] [ text "Clique nas células para marcar os períodos em que você não pode estudar. M = manhã, T = tarde, N = noite." ]
+        , viewGradeSemanal model.requisicao.bloqueados ocupado
+        , p [] [ text (String.fromInt (List.length model.requisicao.bloqueados) ++ " períodos bloqueados") ]
         , button
             [ type_ "button"
-            , disabled (model.estado == Carregando)
+            , disabled (ocupado || not pedidoValido)
             , onClick GerarGrades
             ]
             [ text
-                (if model.estado == Carregando then
+                (if ocupado then
                     "Buscando grades..."
 
                  else
                     "Gerar grades"
                 )
             ]
+        , if not pedidoValido then
+            p [] [ text "Selecione ao menos uma disciplina desejada para continuar." ]
+
+          else
+            text ""
         , viewEstado model.estado
+        ]
+
+
+viewDisciplinas : Request -> Bool -> Html Msg
+viewDisciplinas requisicao ocupado =
+    div [ class "disciplinas" ]
+        [ div []
+            [ h3 [] [ text "Já cursei" ]
+            , p [] [ text "Essas matérias contam como pré-requisitos já cumpridos." ]
+            , div [] (List.map (viewOpcao AlternarCursada requisicao.cursadas ocupado) disciplinas)
+            ]
+        , div []
+            [ h3 [] [ text "Quero cursar" ]
+            , p [] [ text "Essas matérias serão enviadas ao planejador para montar a grade." ]
+            , div [] (List.map (viewOpcao AlternarDesejada requisicao.desejadas ocupado) disciplinas)
+            ]
+        ]
+
+
+viewOpcao : (String -> Msg) -> List String -> Bool -> Disciplina -> Html Msg
+viewOpcao fazerMsg selecionadas ocupado disciplina =
+    let
+        codigo =
+            disciplina.codigo
+    in
+    label [ class "disciplina" ]
+        [ input
+            [ type_ "checkbox"
+            , checked (List.member codigo selecionadas)
+            , disabled ocupado
+            , onCheck (\_ -> fazerMsg codigo)
+            ]
+            []
+        , text
+            (" "
+                ++ disciplina.codigo
+                ++ " — "
+                ++ disciplina.nome
+                ++ " ("
+                ++ String.fromInt disciplina.creditos
+                ++ " créditos)"
+            )
+        ]
+
+
+viewGradeSemanal : List String -> Bool -> Html Msg
+viewGradeSemanal bloqueados ocupado =
+    let
+        dias =
+            [ ( 2, "Seg" ), ( 3, "Ter" ), ( 4, "Qua" ), ( 5, "Qui" ), ( 6, "Sex" ), ( 7, "Sáb" ) ]
+
+        turnos =
+            [ ( "M", "Manhã", List.range 1 5 )
+            , ( "T", "Tarde", List.range 1 6 )
+            , ( "N", "Noite", List.range 1 4 )
+            ]
+
+        linhas =
+            List.concatMap (viewLinhasTurno dias bloqueados ocupado) turnos
+    in
+    table [ class "grade-semanal" ]
+        [ thead []
+            [ tr []
+                (th [] [ text "Período" ]
+                    :: List.map (\( _, nome ) -> th [] [ text nome ]) dias
+                )
+            ]
+        , tbody [] linhas
+        ]
+
+
+viewLinhasTurno : List ( Int, String ) -> List String -> Bool -> ( String, String, List Int ) -> List (Html Msg)
+viewLinhasTurno dias bloqueados ocupado ( turno, nomeTurno, indices ) =
+    List.map
+        (\indice ->
+            tr []
+                (th [] [ text (nomeTurno ++ " " ++ String.fromInt indice) ]
+                    :: List.map (viewCelula turno indice bloqueados ocupado) dias
+                )
+        )
+        indices
+
+
+viewCelula : String -> Int -> List String -> Bool -> ( Int, String ) -> Html Msg
+viewCelula turno indice bloqueados ocupado ( dia, _ ) =
+    let
+        codigo =
+            String.fromInt dia ++ turno ++ String.fromInt indice
+
+        bloqueado =
+            List.member codigo bloqueados
+    in
+    td []
+        [ button
+            [ type_ "button"
+            , class (if bloqueado then "horario bloqueado" else "horario livre")
+            , disabled ocupado
+            , onClick (AlternarBloqueio codigo)
+            ]
+            [ text (if bloqueado then "Bloq." else "Livre") ]
         ]
 
 
@@ -128,7 +321,7 @@ viewEstado : Estado -> Html Msg
 viewEstado estado =
     case estado of
         Pronto ->
-            p [] [ text "Pronto para solicitar sugestões." ]
+            p [] [ text "Ajuste os filtros e gere suas grades." ]
 
         Carregando ->
             p [] [ text "Consultando o planejador..." ]
@@ -149,16 +342,27 @@ viewEstado estado =
 
 viewResumoGrade : Grade -> Html Msg
 viewResumoGrade grade =
-    p []
-        [ text
-            ("Opção "
-                ++ String.fromInt grade.rank
-                ++ " — pontuação "
-                ++ String.fromInt grade.score
-                ++ ", "
-                ++ String.fromInt grade.janelas
-                ++ " janelas, "
-                ++ String.fromInt grade.diasCampus
-                ++ " dias no campus"
-            )
+    let
+        turmas =
+            String.join ", " (List.map resumoTurma grade.turmas)
+    in
+    div [ class "resultado-grade" ]
+        [ h3 [] [ text ("Opção " ++ String.fromInt grade.rank) ]
+        , p []
+            [ text
+                ("Pontuação "
+                    ++ String.fromInt grade.score
+                    ++ " · "
+                    ++ String.fromInt grade.janelas
+                    ++ " janelas · "
+                    ++ String.fromInt grade.diasCampus
+                    ++ " dias no campus"
+                )
+            ]
+        , p [] [ text ("Turmas: " ++ turmas) ]
         ]
+
+
+resumoTurma : Section -> String
+resumoTurma turma =
+    turma.codigo ++ " " ++ turma.turma ++ " (" ++ String.join ", " turma.horarios ++ ")"
