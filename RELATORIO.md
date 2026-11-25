@@ -305,11 +305,11 @@ do Elm, documentação do FastAPI e do uv, repositório
 
 **Uso de ferramentas de IA.**
 
-- **Faixa de uso no código:** [nenhum | pontual | auxiliar | intensivo]
+- **Faixa de uso no código:** auxiliar
 
 | Ferramenta | Para que foi usada | Como o grupo verificou o resultado |
 |------------|--------------------|------------------------------------|
-| Claude Code (Anthropic) | Escreveu a maior parte de `backend/server.py` a partir do início feito por [Nome], o `Makefile` e o rascunho deste relatório | A API foi testada com curl contra o Prolog real; o relatório foi revisado pelo grupo; [completar] |
+| Claude (Anthropic) | Auxílio na implementação da API (`backend/server.py`), do `Makefile` e do rascunho deste relatório. [Nome] começou o `server.py`, escolheu as tecnologias (FastAPI, uv e janus), tomou as decisões de projeto e orientou e revisou o que a ferramenta gerou | A API foi testada com curl contra o Prolog real; o relatório foi revisado pelo grupo; [completar] |
 | [Ferramenta] | [Uso pelos outros integrantes] | [...] |
 
 ## 12. Apresentação oral
