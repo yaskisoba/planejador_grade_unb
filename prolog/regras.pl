@@ -65,7 +65,8 @@ apto(Cursadas, Codigo) :-
     maplist(texto_atomo, Cursadas, Feitas),
     texto_atomo(Codigo, C),
     \+ memberchk(C, Feitas),
-    forall(prerequisito(C, Requisito), memberchk(Requisito, Feitas)).
+    forall(grupo_prerequisitos(C, Alternativas),
+           (member(Requisito, Alternativas), memberchk(Requisito, Feitas))).
 
 disciplinas_aptas(Cursadas, Desejadas, Aptas) :-
     maplist(texto_atomo, Desejadas, Codigos),
