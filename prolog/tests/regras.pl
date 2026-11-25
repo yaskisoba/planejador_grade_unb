@@ -1,4 +1,4 @@
-:- use_module('../../prolog/regras').
+:- use_module('../regras').
 
 :- begin_tests(horarios).
 
