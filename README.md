@@ -92,6 +92,38 @@ A oferta foi consultada em 25/11/2026. A API usa uma cópia versionada e o motor
 calcula as vagas disponíveis pela diferença entre vagas ofertadas e ocupadas
 nessa consulta. A grade semanal combina os horários publicados de cada turma,+inclusive quando o SIGAA informa datas de vigência diferentes. [Consulta de Turmas do SIGAA](https://sigaa.unb.br/sigaa/public/turmas/listar.jsf)
 
+### Atualizar a página após editar a interface
+
+A interface não tem recompilação nem atualização automática. O navegador exibe
+o arquivo compilado em `frontend/build/index.html`, então salvar um arquivo
+`.elm` não basta para visualizar a mudança.
+
+Após alterar textos ou layout em `frontend/src/`, salve o arquivo e execute em
+outro terminal, a partir da raiz do repositório:
+
+```sh
+cd frontend
+elm make src/Main.elm --output=build/index.html
+```
+
+Se você usa o Elm pelo npm, com Node.js e npm instalados, pode compilar com a
+versão exigida pelo projeto usando este comando dentro de `frontend`:
+
+```sh
+npx --yes --package elm@0.19.2-0 elm make src/Main.elm --output=build/index.html
+```
+
+Espere a mensagem `Success!` e atualize o navegador com **Ctrl + Shift + R**.
+Se a compilação falhar, a página continuará exibindo a última versão compilada.
+Mantenha o servidor aberto; não é necessário reiniciá-lo a cada alteração no
+Elm. A exceção é a primeira compilação, caso a pasta `frontend/build` ainda
+não existisse quando o servidor foi iniciado.
+
+Para alterações apenas em `frontend/grade.css`, basta salvar e atualizar o
+navegador com **Ctrl + Shift + R**, sem recompilar o Elm. Use o endereço da
+porta em que iniciou o servidor, como `http://127.0.0.1:8000/` ou
+`http://127.0.0.1:8001/`.
+
 ### Testar pelo Swagger
 
 Em `GET /api/saude`, clique em **Try it out** e **Execute**. A resposta esperada
