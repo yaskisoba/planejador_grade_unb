@@ -3,13 +3,15 @@ module Main exposing (main)
 {-| Tela de entrada e ciclo de vida da aplicação.
 
 A interface carrega o catálogo curricular pela API.
+
 -}
 
 import Browser
 import Codec exposing (Grade)
 import GradeView
-import Html exposing (Html, button, div, h1, h2, h3, input, label, node, p, table, tbody, td, text, th, thead, tr)
-import Html.Attributes exposing (attribute, checked, class, disabled, href, rel, style, type_, value)
+import Horario
+import Html exposing (Html, button, caption, div, h1, h2, h3, input, label, node, p, span, table, tbody, td, text, th, thead, tr)
+import Html.Attributes exposing (attribute, checked, class, colspan, disabled, href, placeholder, rel, scope, tabindex, type_, value)
 import Html.Events exposing (onCheck, onClick, onInput)
 import Http
 import Types exposing (Catalogo, Disciplina, Request)
@@ -230,7 +232,8 @@ podeGerarGrades : Model -> Bool
 podeGerarGrades model =
     case model.catalogo of
         CatalogoCarregado _ ->
-            model.estado /= Carregando
+            model.estado
+                /= Carregando
                 && not (List.isEmpty model.requisicao.desejadas)
                 && List.isEmpty (desejadasSemTurma model)
 
@@ -247,45 +250,91 @@ view model =
         semTurma =
             desejadasSemTurma model
     in
-    div [ class "app" ]
+    node "main"
+        [ class "app", attribute "lang" "pt-BR" ]
         [ node "link" [ rel "stylesheet", href "/grade.css" ] []
-        , h1 [] [ text "Planejador de grade da UnB" ]
-        , p [] [ text "Escolha as disciplinas e os períodos em que você não pode ter aula. O planejador buscará combinações sem conflitos." ]
-        , h2 [] [ text "1. Disciplinas" ]
-        , p [] [ text "Marque o que já cursou e o que deseja cursar. Uma disciplina não pode ficar nos dois grupos." ]
-        , viewCatalogo model ocupado
-        , h2 [] [ text "2. Horários bloqueados" ]
-        , p [] [ text "Clique nas células para marcar os períodos em que você não pode estudar. M = manhã, T = tarde, N = noite." ]
-        , viewGradeSemanal model.requisicao.bloqueados ocupado
-        , p [] [ text (String.fromInt (List.length model.requisicao.bloqueados) ++ " períodos bloqueados") ]
-        , button
-            [ type_ "button"
-            , disabled (not (podeGerarGrades model))
-            , onClick GerarGrades
+        , node "header"
+            [ class "app-cabecalho" ]
+            [ div [ class "app-marca" ]
+                [ span [ class "app-simbolo", attribute "aria-hidden" "true" ] [ text "▦" ]
+                , text "UnB / Planejamento acadêmico"
+                ]
+            
+            , p [ class "app-introducao" ] [ text "Escolha suas disciplinas, reserve seus horários e encontre uma grade que combine com a sua rotina." ]
             ]
-            [ text
+        , node "section"
+            [ class "app-painel", attribute "aria-labelledby" "titulo-disciplinas" ]
+            [ viewTitulo "01" "titulo-disciplinas" "Disciplinas" "Marque o que já cursou e o que deseja cursar no próximo semestre."
+            , viewCatalogo model ocupado
+            ]
+        , node "section"
+            [ class "app-painel", attribute "aria-labelledby" "titulo-horarios" ]
+            [ viewTitulo "02" "titulo-horarios" "Sua disponibilidade" "Marque os períodos em que você não pode ter aula. Clique novamente para liberar."
+            , div [ class "app-linha-apoio" ]
+                [ div [ class "horarios-legenda" ]
+                    [ span [ class "legenda-livre" ] [ text "Disponível" ]
+                    , span [ class "legenda-bloqueado" ] [ text "Bloqueado" ]
+                    ]
+                , span [ class "app-contador", attribute "role" "status" ]
+                    [ text (String.fromInt (List.length model.requisicao.bloqueados) ++ " períodos bloqueados") ]
+                ]
+            , viewGradeSemanal model.requisicao.bloqueados ocupado
+            , div [ class "app-acao" ]
+                [ div []
+                    [ p [ class "app-acao-titulo" ] [ text "Tudo pronto para montar sua grade?" ]
+                    , p [ class "app-ajuda", attribute "role" "status" ]
+                        [ text
+                            (if List.isEmpty model.requisicao.desejadas then
+                                "Selecione ao menos uma disciplina em “Quero cursar”."
+
+                             else if not (List.isEmpty semTurma) then
+                                "Sem turma cadastrada: " ++ String.join ", " (List.map .codigo semTurma) ++ ". Desmarque essas disciplinas para continuar."
+
+                             else
+                                String.fromInt (List.length model.requisicao.desejadas) ++ " disciplina(s) desejada(s). Vamos buscar combinações sem conflitos."
+                            )
+                        ]
+                    ]
+                , button
+                    [ type_ "button"
+                    , class "app-botao app-botao-principal"
+                    , disabled (not (podeGerarGrades model))
+                    , onClick GerarGrades
+                    ]
+                    [ text
+                        (if ocupado then
+                            "Buscando grades…"
+
+                         else
+                            "Gerar grades"
+                        )
+                    , span [ attribute "aria-hidden" "true" ] [ text "→" ]
+                    ]
+                ]
+            ]
+        , node "section"
+            [ class "app-painel app-resultados"
+            , attribute "aria-label" "Grades sugeridas"
+            , attribute "aria-busy"
                 (if ocupado then
-                    "Buscando grades..."
+                    "true"
 
                  else
-                    "Gerar grades"
+                    "false"
                 )
             ]
-        , if List.isEmpty model.requisicao.desejadas then
-            p [] [ text "Selecione ao menos uma disciplina desejada para continuar." ]
+            [ viewEstado model ]
+        ]
 
-          else if not (List.isEmpty semTurma) then
-            p [ attribute "role" "status" ]
-                [ text
-                    ("Sem turma cadastrada: "
-                        ++ String.join ", " (List.map .codigo semTurma)
-                        ++ ". Desmarque essas disciplinas para gerar a grade."
-                    )
-                ]
 
-          else
-            text ""
-        , viewEstado model
+viewTitulo : String -> String -> String -> String -> Html Msg
+viewTitulo numero id titulo descricao =
+    div [ class "app-titulo-secao" ]
+        [ span [ class "app-etapa", attribute "aria-hidden" "true" ] [ text numero ]
+        , div []
+            [ h2 [ attribute "id" id ] [ text titulo ]
+            , p [ class "app-ajuda" ] [ text descricao ]
+            ]
         ]
 
 
@@ -293,12 +342,12 @@ viewCatalogo : Model -> Bool -> Html Msg
 viewCatalogo model ocupado =
     case model.catalogo of
         CarregandoCatalogo ->
-            p [] [ text "Carregando disciplinas..." ]
+            p [ class "app-mensagem", attribute "role" "status" ] [ text "Carregando disciplinas…" ]
 
         FalhouCatalogo detalhe ->
-            div []
+            div [ class "app-mensagem app-erro", attribute "role" "alert" ]
                 [ p [] [ text ("Não foi possível carregar as disciplinas. " ++ detalhe) ]
-                , button [ type_ "button", onClick CarregarCatalogo ] [ text "Tentar novamente" ]
+                , button [ class "app-botao", type_ "button", onClick CarregarCatalogo ] [ text "Tentar novamente" ]
                 ]
 
         CatalogoCarregado catalogo ->
@@ -307,27 +356,41 @@ viewCatalogo model ocupado =
 
 viewDisciplinas : Model -> Bool -> Catalogo -> Html Msg
 viewDisciplinas model ocupado catalogo =
-    div [ class "disciplinas" ]
-        [ p [] [ text ("Engenharia de Software · matriz " ++ catalogo.matriz) ]
-        , div []
-            [ h3 [] [ text "Já cursei" ]
-            , p [] [ text "Essas matérias contam como pré-requisitos já cumpridos." ]
-            , viewListaDisciplinas "Buscar cursadas por código ou nome"
-                model.buscaCursadas
-                BuscouCursadas
-                (viewOpcao AlternarCursada model.requisicao.cursadas ocupado)
-                catalogo.disciplinas
-            ]
-        , div []
-            [ h3 [] [ text "Quero cursar" ]
-            , p [] [ text ("Turmas do Campus Gama · SIGAA " ++ catalogo.periodoTurmas) ]
-            , viewListaDisciplinas "Buscar desejadas por código ou nome"
-                model.buscaDesejadas
-                BuscouDesejadas
-                (viewOpcao AlternarDesejada model.requisicao.desejadas ocupado)
-                (List.filter .temTurmas catalogo.disciplinas)
+    div []
+        [ p [ class "app-contexto" ] [ text ("Engenharia de Software · matriz " ++ catalogo.matriz ++ " · Campus Gama · " ++ catalogo.periodoTurmas) ]
+        , div [ class "disciplinas" ]
+            [ div [ class "disciplinas-grupo" ]
+                [ div [ class "disciplinas-cabecalho" ]
+                    [ h3 [] [ text "Já cursei" ]
+                    , viewContador model.requisicao.cursadas
+                    ]
+                , p [ class "app-ajuda" ] [ text "Seu histórico conta para os pré-requisitos." ]
+                , viewListaDisciplinas "Buscar cursadas por código ou nome"
+                    model.buscaCursadas
+                    BuscouCursadas
+                    (viewOpcao AlternarCursada model.requisicao.cursadas ocupado)
+                    catalogo.disciplinas
+                ]
+            , div [ class "disciplinas-grupo" ]
+                [ div [ class "disciplinas-cabecalho" ]
+                    [ h3 [] [ text "Quero cursar" ]
+                    , viewContador model.requisicao.desejadas
+                    ]
+                , p [ class "app-ajuda" ] [ text "Disciplinas com turmas ofertadas neste semestre." ]
+                , viewListaDisciplinas "Buscar desejadas por código ou nome"
+                    model.buscaDesejadas
+                    BuscouDesejadas
+                    (viewOpcao AlternarDesejada model.requisicao.desejadas ocupado)
+                    (List.filter .temTurmas catalogo.disciplinas)
+                ]
             ]
         ]
+
+
+viewContador : List String -> Html Msg
+viewContador selecionadas =
+    span [ class "app-contador", attribute "role" "status" ]
+        [ text (String.fromInt (List.length selecionadas) ++ " selecionadas") ]
 
 
 viewListaDisciplinas : String -> String -> (String -> Msg) -> (Disciplina -> Html Msg) -> List Disciplina -> Html Msg
@@ -342,96 +405,91 @@ viewListaDisciplinas rotulo busca aoBuscar exibirOpcao disciplinas =
         encontradas =
             List.filter corresponde disciplinas
     in
-    div []
-        [ label []
-            [ text (rotulo ++ " ")
-            , input [ type_ "search", value busca, onInput aoBuscar ] []
+    div [ class "disciplinas-selecao" ]
+        [ label [ class "disciplinas-busca" ]
+            [ span [ class "grade-oculto" ] [ text rotulo ]
+            , input [ type_ "search", placeholder "Buscar por nome ou código…", value busca, onInput aoBuscar ] []
             ]
-        , if List.isEmpty encontradas then
-            p [] [ text "Nenhuma disciplina encontrada." ]
+        , div [ class "disciplinas-lista", tabindex 0, attribute "role" "region", attribute "aria-label" rotulo ]
+            (if List.isEmpty encontradas then
+                [ p [ class "disciplinas-vazia", attribute "role" "status" ] [ text "Nenhuma disciplina encontrada. Tente outro nome ou código." ] ]
 
-          else
-            div
-                [ style "width" "fit-content"
-                , style "max-width" "100%"
-                , style "box-sizing" "border-box"
-                , style "padding-inline-end" "0.5rem"
-                , style "max-height" "18rem"
-                , style "overflow-y" "auto"
-                ]
-                (List.map exibirOpcao encontradas)
+             else
+                List.map exibirOpcao encontradas
+            )
         ]
 
 
 viewOpcao : (String -> Msg) -> List String -> Bool -> Disciplina -> Html Msg
 viewOpcao fazerMsg selecionadas ocupado disciplina =
     let
-        codigo =
-            disciplina.codigo
+        selecionada =
+            List.member disciplina.codigo selecionadas
     in
-    label [ class "disciplina", style "display" "block" ]
+    label
+        [ class
+            (if selecionada then
+                "disciplina disciplina-selecionada"
+
+             else
+                "disciplina"
+            )
+        ]
         [ input
             [ type_ "checkbox"
-            , checked (List.member codigo selecionadas)
+            , checked selecionada
             , disabled ocupado
-            , onCheck (\_ -> fazerMsg codigo)
+            , onCheck (\_ -> fazerMsg disciplina.codigo)
             ]
             []
-        , text
-            (" "
-                ++ disciplina.codigo
-                ++ " — "
-                ++ disciplina.nome
-                ++ " ("
-                ++ String.fromInt disciplina.creditos
-                ++ " créditos)"
-            )
+        , span [ class "disciplina-conteudo" ]
+            [ span [ class "disciplina-nome" ] [ text disciplina.nome ]
+            , span [ class "disciplina-detalhe" ] [ text (disciplina.codigo ++ " · " ++ String.fromInt disciplina.creditos ++ " créditos") ]
+            ]
         ]
 
 
 viewGradeSemanal : List String -> Bool -> Html Msg
 viewGradeSemanal bloqueados ocupado =
-    let
-        dias =
-            [ ( 2, "Seg" ), ( 3, "Ter" ), ( 4, "Qua" ), ( 5, "Qui" ), ( 6, "Sex" ), ( 7, "Sáb" ) ]
-
-        turnos =
-            [ ( "M", "Manhã", List.range 1 5 )
-            , ( "T", "Tarde", List.range 1 6 )
-            , ( "N", "Noite", List.range 1 4 )
-            ]
-
-        linhas =
-            List.concatMap (viewLinhasTurno dias bloqueados ocupado) turnos
-    in
-    table [ class "grade-semanal" ]
-        [ thead []
-            [ tr []
-                (th [] [ text "Período" ]
-                    :: List.map (\( _, nome ) -> th [] [ text nome ]) dias
+    div [ class "grade" ]
+        [ div [ class "grade-rolagem", tabindex 0, attribute "role" "region", attribute "aria-label" "Horários bloqueados, role para ver todos os dias" ]
+            [ table [ class "grade-tabela grade-semanal" ]
+                (caption [ class "grade-oculto" ] [ text "Selecione os horários em que você não pode ter aula" ]
+                    :: thead []
+                        [ tr []
+                            (th [ scope "col" ] [ text "Horário" ]
+                                :: List.map (\dia -> th [ scope "col" ] [ text (Horario.nomeDia dia) ]) Horario.dias
+                            )
+                        ]
+                    :: List.map (viewLinhasTurno bloqueados ocupado) Horario.turnos
                 )
             ]
-        , tbody [] linhas
         ]
 
 
-viewLinhasTurno : List ( Int, String ) -> List String -> Bool -> ( String, String, List Int ) -> List (Html Msg)
-viewLinhasTurno dias bloqueados ocupado ( turno, nomeTurno, indices ) =
-    List.map
-        (\indice ->
-            tr []
-                (th [] [ text (nomeTurno ++ " " ++ String.fromInt indice) ]
-                    :: List.map (viewCelula turno indice bloqueados ocupado) dias
+viewLinhasTurno : List String -> Bool -> Horario.Turno -> Html Msg
+viewLinhasTurno bloqueados ocupado turno =
+    tbody []
+        (tr [ class "grade-turno" ] [ th [ colspan 7, scope "rowgroup" ] [ text (Horario.nomeTurno turno) ] ]
+            :: List.map
+                (\periodo ->
+                    tr []
+                        (th [ class "grade-periodo", scope "row" ]
+                            [ span [ class "grade-periodo-codigo" ] [ text (Horario.codigoPeriodo periodo) ]
+                            , span [ class "grade-periodo-hora" ] [ text (Horario.inicio periodo ++ "–" ++ Horario.fim periodo) ]
+                            ]
+                            :: List.map (viewCelula periodo bloqueados ocupado) Horario.dias
+                        )
                 )
+                (Horario.periodosDoTurno turno)
         )
-        indices
 
 
-viewCelula : String -> Int -> List String -> Bool -> ( Int, String ) -> Html Msg
-viewCelula turno indice bloqueados ocupado ( dia, _ ) =
+viewCelula : Horario.Periodo -> List String -> Bool -> Horario.Dia -> Html Msg
+viewCelula periodo bloqueados ocupado dia =
     let
         codigo =
-            String.fromInt dia ++ turno ++ String.fromInt indice
+            Horario.codigoSlot { dia = dia, periodo = periodo }
 
         bloqueado =
             List.member codigo bloqueados
@@ -439,11 +497,41 @@ viewCelula turno indice bloqueados ocupado ( dia, _ ) =
     td []
         [ button
             [ type_ "button"
-            , class (if bloqueado then "horario bloqueado" else "horario livre")
+            , class
+                (if bloqueado then
+                    "horario bloqueado"
+
+                 else
+                    "horario livre"
+                )
+            , attribute "aria-label" (Horario.nomeDia dia ++ ", " ++ Horario.codigoPeriodo periodo ++ ", " ++ Horario.inicio periodo ++ "–" ++ Horario.fim periodo)
+            , attribute "aria-pressed"
+                (if bloqueado then
+                    "true"
+
+                 else
+                    "false"
+                )
             , disabled ocupado
             , onClick (AlternarBloqueio codigo)
             ]
-            [ text (if bloqueado then "Bloq." else "Livre") ]
+            [ span [ attribute "aria-hidden" "true", class "horario-icone" ]
+                [ text
+                    (if bloqueado then
+                        "×"
+
+                     else
+                        "+"
+                    )
+                ]
+            , text
+                (if bloqueado then
+                    "Bloqueado"
+
+                 else
+                    "Livre"
+                )
+            ]
         ]
 
 
@@ -451,17 +539,29 @@ viewEstado : Model -> Html Msg
 viewEstado model =
     case model.estado of
         Pronto ->
-            p [] [ text "Ajuste os filtros e gere suas grades." ]
+            div [ class "app-resultado-vazio" ]
+                [ span [ class "app-resultado-icone", attribute "aria-hidden" "true" ] [ text "▦" ]
+                , h2 [] [ text "Sua próxima grade, logo aqui" ]
+                , p [ class "app-ajuda" ] [ text "Ao gerar, você poderá comparar até cinco opções e escolher a que funciona melhor para você." ]
+                ]
 
         Carregando ->
-            p [] [ text "Consultando o planejador..." ]
+            div [ class "app-resultado-vazio", attribute "role" "status" ]
+                [ span [ class "app-carregando", attribute "aria-hidden" "true" ] []
+                , h2 [] [ text "Encontrando suas melhores combinações…" ]
+                , p [ class "app-ajuda" ] [ text "Estamos cruzando disciplinas, pré-requisitos e sua disponibilidade." ]
+                ]
 
         Falhou detalhe ->
-            div [] [ h2 [] [ text "Não foi possível gerar as grades" ], p [] [ text detalhe ] ]
+            div [ class "app-mensagem app-erro", attribute "role" "alert" ]
+                [ h2 [] [ text "Não foi possível gerar as grades" ], p [] [ text detalhe ] ]
 
         Carregado grades ->
-            GradeView.view
-                { selecionada = model.opcaoSelecionada
-                , aoSelecionar = SelecionouOpcao
-                }
-                grades
+            div []
+                [ p [ class "grade-oculto", attribute "role" "status" ] [ text (String.fromInt (List.length grades) ++ " grades encontradas.") ]
+                , GradeView.view
+                    { selecionada = model.opcaoSelecionada
+                    , aoSelecionar = SelecionouOpcao
+                    }
+                    grades
+                ]
