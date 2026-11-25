@@ -6,6 +6,8 @@ consultas ao SIGAA; mudanças intencionais no semestre exigem revisar os casos.
 
 import unittest
 
+from pydantic import ValidationError
+
 from server import Requisicao, gerar_grades, grupos_prerequisitos
 
 
@@ -38,7 +40,13 @@ class GruposPrerequisitosTest(unittest.TestCase):
 class OfertaSigaaTest(unittest.TestCase):
     def gerar(self, cursadas, bloqueados):
         return gerar_grades(
-            Requisicao(cursadas=cursadas, desejadas=["FGA0210"], bloqueados=bloqueados)
+            Requisicao(
+                cursadas=cursadas,
+                desejadas=["FGA0210"],
+                bloqueados=bloqueados,
+                peso_janelas=3,
+                peso_dias=2,
+            )
         )["grades"]
 
     def turmas(self, grades):
@@ -65,6 +73,15 @@ class OfertaSigaaTest(unittest.TestCase):
         for cursadas in [[], ["FGA0158"], ["FGA0003"]]:
             with self.subTest(cursadas=cursadas):
                 self.assertEqual(self.gerar(cursadas, []), [])
+
+    def test_pontuacao_usa_pesos_enviados_na_requisicao(self):
+        grades = self.gerar(["FGA0158", "FGA0003"], [])
+        for grade in grades:
+            self.assertEqual(grade["score"], 3 * grade["janelas"] + 2 * grade["dias_campus"])
+
+    def test_pesos_negativos_sao_rejeitados(self):
+        with self.assertRaises(ValidationError):
+            Requisicao(desejadas=["FGA0210"], peso_janelas=-1)
 
 
 if __name__ == "__main__":

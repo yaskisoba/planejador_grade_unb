@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOGO_UNB = json.loads(Path(__file__).with_name("catalogo_unb.json").read_text(encoding="utf-8"))
@@ -66,11 +66,11 @@ app.add_middleware(
 )
 
 class Requisicao(BaseModel):
-    cursadas: list[str] = []
-    desejadas: list[str] = []
-    bloqueados: list[str] = []
-    peso_janelas: int = 7
-    peso_dias: int = 1
+    cursadas: list[str] = Field(default_factory=list)
+    desejadas: list[str] = Field(default_factory=list)
+    bloqueados: list[str] = Field(default_factory=list)
+    peso_janelas: int = Field(default=7, ge=0)
+    peso_dias: int = Field(default=1, ge=0)
 
 
 class Disciplina(BaseModel):
@@ -97,7 +97,8 @@ class Catalogo(BaseModel):
 # Sem isso, ele tenta converter as variáveis internas (livres ou compostas)
 # e dá erro. Só R volta para o Python.
 CONSULTA = """
-    ranking:top_5_grades(Cursadas, Desejadas, Bloqueados, _Top5),
+    ranking:top_5_grades_pesos(
+        Cursadas, Desejadas, Bloqueados, PesoJanelas, PesoDias, _Top5),
     findall([_Pontuacao, _Janelas, _Dias, _Turmas],
             ( member(resultado(_Pontuacao, _Janelas, _Dias, _Grade), _Top5),
               findall([_Codigo, _Id, _Horarios],
@@ -150,14 +151,24 @@ def gerar_grades(req: Requisicao):
     with trava:
         resposta = janus.query_once(
             CONSULTA,
-            {"Cursadas": req.cursadas, "Desejadas": req.desejadas, "Bloqueados": req.bloqueados},
+            {
+                "Cursadas": req.cursadas,
+                "Desejadas": req.desejadas,
+                "Bloqueados": req.bloqueados,
+                "PesoJanelas": req.peso_janelas,
+                "PesoDias": req.peso_dias,
+            },
         )
 
     if not resposta.get("truth"):
         raise HTTPException(status_code=500, detail="Falha ao consultar o motor Prolog.")
 
+    return {"grades": formatar_grades(resposta["R"])}
+
+
+def formatar_grades(resultados):
     grades = []
-    for rank, (pontuacao, janelas, dias, turmas) in enumerate(resposta["R"], start=1):
+    for rank, (pontuacao, janelas, dias, turmas) in enumerate(resultados, start=1):
         grades.append({
             "rank": rank,
             "score": pontuacao,
@@ -168,9 +179,7 @@ def gerar_grades(req: Requisicao):
                 for codigo, turma, horarios in turmas
             ],
         })
-
-    # Lista vazia é resposta válida: o Elm mostra "nenhuma grade compatível".
-    return {"grades": grades}
+    return grades
 
 
 @app.get("/grade.css", include_in_schema=False)

@@ -15,9 +15,8 @@ docs/                P7  apresentação
 
 - **Regras Prolog:** geração de grades sem choques, respeitando pré-requisitos,
   créditos, vagas e horários bloqueados, com CLP(FD).
-- **Ranking Prolog:** retorno de até cinco grades válidas, priorizando menos
-  períodos livres entre aulas e depois menos dias no campus. A pontuação é
-  `7 × janelas + dias`; quanto menor, melhor.
+- **Ranking Prolog:** retorno de até cinco grades válidas, com pontuação
+  configurável por peso de janelas e de dias no campus; quanto menor, melhor.
 - **Catálogo e turmas.** O catálogo curricular contém 42 disciplinas obrigatórias
   e 60 optativas da Engenharia de Software da FCTE. A geração de grades usa
   162 turmas de 66 disciplinas do Campus Gama ofertadas em 2026/2.
@@ -219,8 +218,10 @@ em [`GET /api/turmas?codigo=FGA0210`](http://127.0.0.1:8000/api/turmas?codigo=FG
 | `POST /api/gerar-grades` | `{"cursadas": [...], "desejadas": [...], "bloqueados": [...], "peso_janelas": 3, "peso_dias": 2}` | `{"grades": [{"rank", "score", "janelas", "dias_campus", "turmas"}]}` |
 | `GET /api/saude` | nada | `{"status": "ok"}` |
 
-`peso_janelas` e `peso_dias` são aceitos, mas o motor usa sempre a pontuação
-`7 × janelas + dias`. Sem grade compatível, a resposta é `{"grades": []}`.
+`peso_janelas` e `peso_dias` definem a pontuação e a ordem das grades:
+`peso_janelas × janelas + peso_dias × dias_campus`. Os valores padrão da API
+são 7 e 1; a interface envia 3 e 2. Sem grade compatível, a resposta é
+`{"grades": []}`.
 Uma lista `desejadas` vazia devolve 400, e tipos errados devolvem 422.
 
 Os dados curriculares foram extraídos das tabelas 41 e 42 do projeto pedagógico
