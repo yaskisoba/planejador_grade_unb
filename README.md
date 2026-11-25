@@ -18,27 +18,13 @@ docs/                P7  apresentação
 - **Ranking Prolog:** retorno de até cinco grades válidas, priorizando menos
   períodos livres entre aulas e depois menos dias no campus. A pontuação é
   `7 × janelas + dias`; quanto menor, melhor.
-- **Base e testes:** base demonstrativa com 4 disciplinas e 8 turmas;
-  47 testes Prolog aprovados (18 de regras e 29 de ranking).
+- **Base e testes.** Base demonstrativa com 4 disciplinas e 8 turmas e
+  51 testes Prolog (22 de regras e 29 de ranking).
 - **Interface Elm:** seleção de disciplinas cursadas e desejadas, grade clicável
   para horários bloqueados e ciclo de requisição HTTP com estados de carregamento,
   erro e resultados. O catálogo atual acompanha a base demonstrativa Prolog.
-
-A API Python ainda será implementada. Até ela estar disponível, a interface pode
-ser compilada, mas o botão de geração não receberá uma resposta válida.
-
-## Interface Elm
-
-Requisito: Elm 0.19.1 e dependências definidas em `frontend/elm.json`.
-Na pasta `frontend`, compile a aplicação com:
-
-```sh
-elm make src/Main.elm --output=main.js
-```
-
-O fluxo de entrada envia `cursadas`, `desejadas`, `bloqueados`, `peso_janelas`
-e `peso_dias` para `POST /api/gerar-grades`. O backend deve responder com o
-formato `{"grades": [...]}` definido no cronograma do projeto.
+- **API Python.** O FastAPI recebe a requisição do Elm e consulta o motor
+  Prolog via Janus para retornar as grades sugeridas.
 
 ## Estrutura
 
@@ -48,24 +34,68 @@ formato `{"grades": [...]}` definido no cronograma do projeto.
 | `prolog/ranking.pl` | Cálculo da pontuação e seleção das melhores grades | P2 |
 | `prolog/turmas.pl` | Base demonstrativa de disciplinas, turmas e pré-requisitos | P3 |
 | `backend/server.py` | API FastAPI que consulta o Prolog via janus | P3 |
-| `frontend/src/` | Pasta reservada para a interface Elm | P4, P5, P6 |
-| `frontend/tests/` | Pasta reservada para elm-test | P7 |
+| `frontend/src/` | Interface Elm | P4, P5, P6 |
+| `frontend/tests/` | Testes Elm | P7 |
 | `tests/prolog/` | Testes PlUnit de regras e ranking | P7 |
 | `docs/` | Pasta reservada para a apresentação | P7 |
 
-## API
+## Executar a interface com a API
 
-Requisitos: SWI-Prolog 9.1.22 ou mais novo com `swipl` no PATH, e
-[uv](https://docs.astral.sh/uv/). Na pasta `backend/`:
+### Pré-requisitos
+
+- SWI-Prolog com `swipl` no `PATH`. A execução foi verificada com a versão 9.2.9.
+- `uv` para configurar o ambiente Python. [Instalação do uv](https://docs.astral.sh/uv/getting-started/installation/)
+- Elm 0.19.2 para compilar a interface. [Instalação do Elm](https://guide.elm-lang.org/install/elm.html)
+
+### Compilar o Elm
+
+Execute a partir da raiz do repositório. Para testar apenas a API pelo Swagger,
+vá direto para **Subir a API**.
 
 ```sh
-uv sync
-uv run start
+cd frontend
+elm make src/Main.elm --output=build/index.html
+cd ..
 ```
 
-O servidor sobe em http://localhost:8000. A documentação interativa fica em
-http://localhost:8000/docs. Se a pasta `frontend/build/` existir, o servidor
-também entrega a interface Elm compilada em `/`.
+### Subir a API
+
+A partir da raiz do repositório, entre em `backend`. Os comandos usam Python
+3.14, para o qual o pacote Janus do projeto tem um binário para Windows x64.
+O `uv` baixa essa versão do Python quando necessário.
+
+```sh
+cd backend
+uv sync --locked --python 3.14
+uv run --locked --python 3.14 start
+```
+
+- Com o Elm compilado, abra o [planejador](http://127.0.0.1:8000/). Se o servidor
+  já estiver aberto quando você gerar o HTML pela primeira vez, reinicie-o para
+  carregar `frontend/build`.
+- Para testar os endpoints diretamente, abra o [Swagger](http://127.0.0.1:8000/docs).
+
+Na tela do planejador, selecione as disciplinas cursadas, as desejadas e os
+horários bloqueados. Clique em **Gerar grades** para enviar a consulta à API e
+ver o resumo das sugestões.
+
+### Testar pelo Swagger
+
+Em `GET /api/saude`, clique em **Try it out** e **Execute**. A resposta esperada
+é `200` com `{"status":"ok"}`. Para testar `POST /api/gerar-grades`, cole o JSON
+abaixo em **Request body** e execute.
+
+```json
+{
+  "cursadas": ["FGA0158"],
+  "desejadas": ["FGA0210", "FGA0244"],
+  "bloqueados": []
+}
+```
+
+Em **Server response**, o resultado esperado é `200` com três grades de
+pontuação `4`, `4` e `24`. Alterar `bloqueados` para `["2M3"]` deixa uma grade
+com as duas turmas B.
 
 | Rota | Entrada | Saída |
 | --- | --- | --- |
