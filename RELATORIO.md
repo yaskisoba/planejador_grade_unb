@@ -11,7 +11,7 @@
 
 | Nome completo | Matrícula | Turma (14h/16h) | Usuário GitHub |
 |---------------|-----------|-----------------|----------------|
-| [Nome]        | [000000]  | [14h]           | [@usuario]     |
+| Johan Rocha   | [000000]  | [14h]           | [@usuario]     |
 | [Nome]        | [000000]  | [16h]           | [@usuario]     |
 | [Nome]        | [000000]  | [14h]           | [@usuario]     |
 | [Nome]        | [000000]  | [16h]           | [@usuario]     |
@@ -281,7 +281,7 @@ uma lista vazia, não um erro.
 |------------|--------------------------|
 | [Nome]     | `prolog/regras.pl`: choques, pré-requisitos e créditos com CLP(FD) |
 | [Nome]     | `prolog/ranking.pl`: métricas e Top 5 |
-| [Nome]     | `backend/`: API FastAPI + janus; `prolog/turmas.pl`; `Makefile` |
+| Johan Rocha | `backend/`: API FastAPI + janus; `Makefile`; validador de entrega; correção do `elm.json`; rascunho do `RELATORIO.md` |
 | [Nome]     | `frontend/src/Main.elm` e `Types.elm`: arquitetura TEA e HTTP |
 | [Nome]     | Filtros de entrada (seleção de disciplinas e bloqueio de horários) |
 | [Nome]     | `Horario.elm`, `Semana.elm`, `GradeView.elm`, `Codec.elm` e testes Elm |
@@ -309,7 +309,7 @@ do Elm, documentação do FastAPI e do uv, repositório
 
 | Ferramenta | Para que foi usada | Como o grupo verificou o resultado |
 |------------|--------------------|------------------------------------|
-| Claude (Anthropic) | Auxílio na implementação da API (`backend/server.py`), do `Makefile` e do rascunho deste relatório. [Nome] começou o `server.py`, escolheu as tecnologias (FastAPI, uv e janus), tomou as decisões de projeto e orientou e revisou o que a ferramenta gerou | A API foi testada com curl contra o Prolog real; o relatório foi revisado pelo grupo; [completar] |
+| Claude (Anthropic) | Auxílio na implementação da API (`backend/server.py`), do `Makefile` e do rascunho deste relatório. Johan Rocha começou o `server.py`, escolheu as tecnologias (FastAPI, uv e janus), tomou as decisões de projeto e orientou e revisou o que a ferramenta gerou | A API foi testada com curl contra o Prolog real; o relatório foi revisado pelo grupo; [completar] |
 | [Ferramenta] | [Uso pelos outros integrantes] | [...] |
 
 ## 12. Apresentação oral
