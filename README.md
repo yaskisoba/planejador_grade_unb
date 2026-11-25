@@ -1,5 +1,12 @@
 # Planejador Inteligente de Grade Horária da UnB
 
+O [relatório de entrega](RELATORIO.md) segue as 13 seções do modelo da disciplina:
+identificação, resumo, execução, arquitetura, Prolog, Elm, integração, testes,
+limitações, contribuições, fontes e IA, apresentação e reflexão.
+Os campos de GitHub, IA e demais dados pendentes serão completados pelo grupo.
+
+![Interface do planejador com uma grade gerada pela oferta real](docs/captura.png)
+
 ```
 prolog/regras.pl     P1  restrições (choques, pré-requisitos, créditos)
 prolog/ranking.pl    P2  ranking e Top 5
@@ -47,9 +54,33 @@ docs/                P7  apresentação
 
 ### Pré-requisitos
 
-- SWI-Prolog com `swipl` no `PATH`. A execução foi verificada com a versão 9.2.9.
+- SWI-Prolog >= 9.1.12 com `swipl` no `PATH`, exigido pelo Janus. A execução foi verificada com a versão 11.0.1.
 - `uv` para configurar o ambiente Python. [Instalação do uv](https://docs.astral.sh/uv/getting-started/installation/)
-- Elm 0.19.2 para compilar a interface. [Instalação do Elm](https://guide.elm-lang.org/install/elm.html)
+- Node.js e npm para usar o Elm 0.19.2 pelo Makefile, ou Elm 0.19.2 instalado para os comandos manuais. [Instalação do Elm](https://guide.elm-lang.org/install/elm.html)
+
+### Início rápido com Make (Linux/macOS)
+
+Com os pré-requisitos acima e GNU Make instalados, execute na raiz do projeto:
+
+```sh
+make install    # prepara o ambiente Python, obtém o Elm e compila a interface
+make dev        # recompila o Elm e inicia a aplicação em http://127.0.0.1:8000
+```
+
+O backend serve também o frontend compilado, portanto os dois usam o mesmo
+endereço. Use `Ctrl + C` para encerrar. Se a porta estiver ocupada, execute
+`make dev PORT=8001` e abra `http://127.0.0.1:8001/`.
+
+Execute `make install` na primeira vez e novamente quando as dependências
+mudarem. Ele não instala ferramentas do sistema como SWI-Prolog, Node.js ou uv.
+O compilador Elm fica fixado em 0.19.2 e é obtido pelo npm; a primeira instalação
+precisa de internet.
+
+Durante `make dev`, alterações nos arquivos Python reiniciam a API
+automaticamente. Para alterações no Elm, rode `make build` em outro terminal
+e atualize o navegador com **Ctrl + Shift + R**. Alterações apenas no CSS
+precisam somente da atualização do navegador. Mudanças nos arquivos Prolog ou
+nos dados JSON exigem reiniciar `make dev`.
 
 ### Compilar o Elm
 
@@ -91,7 +122,8 @@ vagas ocupadas.
 
 A oferta foi consultada em 25/11/2026. A API usa uma cópia versionada e o motor
 calcula as vagas disponíveis pela diferença entre vagas ofertadas e ocupadas
-nessa consulta. A grade semanal combina os horários publicados de cada turma,+inclusive quando o SIGAA informa datas de vigência diferentes. [Consulta de Turmas do SIGAA](https://sigaa.unb.br/sigaa/public/turmas/listar.jsf)
+nessa consulta. A grade semanal combina os horários publicados de cada turma,
+inclusive quando o SIGAA informa datas de vigência diferentes. [Consulta de Turmas do SIGAA](https://sigaa.unb.br/sigaa/public/turmas/listar.jsf)
 
 ### Atualizar a página após editar a interface
 
@@ -162,6 +194,26 @@ pré-requisitos na fonte e `null` representa um dado ausente da tabela de
 optativas. O gerador aplica os pré-requisitos publicados no catálogo e usa os
 horários e as vagas da oferta importada. [Projeto Pedagógico do Curso](https://software.unb.br/images/ESW/PPC_Software_2024_12_16.pdf)
 
+## Executar os testes com Make
+
+Após `make install`, execute na raiz do projeto:
+
+```sh
+make test           # todas as suítes: Prolog, backend e frontend
+make test-prolog    # só os testes Prolog (PlUnit)
+make test-backend   # só os testes de integração do backend (pytest)
+make test-frontend  # só os testes Elm (elm-test)
+```
+
+Não é necessário iniciar `make dev`. São 141 testes: 61 Prolog, 7 Python e
+73 Elm. O comando retorna erro se uma suíte falhar. O alvo Prolog carrega todos
+os arquivos `.pl` de `prolog/tests/`, incluindo novos arquivos adicionados ali.
+O alvo frontend usa versões fixadas do Elm e elm-test compatíveis com o projeto;
+na primeira execução, o npm pode precisar baixar o executor dos testes.
+
+Os testes do backend exercitam a integração Python–Prolog diretamente; eles
+não cobrem requisições HTTP nem interações no navegador.
+
 ## Testes PlUnit
 
 Instale o SWI-Prolog, coloque `swipl` no PATH e execute o comando abaixo
@@ -207,21 +259,19 @@ dependência de desenvolvimento e os testes são reconhecidos por
 plugins externos do pytest para evitar interferência de ferramentas instaladas
 na máquina, como o ROS.
 
-<!-- ## Cenários para elm-test e ponta a ponta
+## Relatório e validação da entrega
 
-Implemente os casos de elm-test quando os módulos Elm estiverem disponíveis,
-usando os tipos e as funções que a interface adotar. Execute os cenários ponta
-a ponta quando o navegador puder enviar uma solicitação à API ligada ao
-SWI-Prolog.
+Preencha os campos pendentes de [RELATORIO.md](RELATORIO.md), revise as
+contribuições e a declaração de IA com o grupo e execute na raiz:
 
-| Suíte | Cenário | Resultado esperado |
-| --- | --- | --- |
-| elm-test | Preparar uma consulta com disciplinas cursadas, desejadas e horários bloqueados | Os valores selecionados chegam ao formato de entrada adotado pela interface. |
-| elm-test | Interpretar a resposta da API | Os dados das turmas e as métricas ficam disponíveis na ordem recebida. Inclua casos com lista vazia e com erro. |
-| Ponta a ponta | Com `FGA0158` e `FGA0003` cursadas, pedir `FGA0210` | A tela exibe três grades. |
-| Ponta a ponta | Repetir a consulta com o bloqueio `3T4` | A tela exibe duas grades, com as turmas `02` e `03` de `FGA0210`. |
-| Ponta a ponta | Pedir `FGA0210` sem ter cursado `FGA0158` | A tela informa que não há grades compatíveis. |
--->
+```sh
+uv run scripts/validar_entrega.py
+```
+
+O validador confere a forma do relatório, os campos e os arquivos referenciados.
+Ele apontará os campos deixados para preenchimento posterior; passar na
+validação não substitui a revisão do conteúdo nem a confirmação do escopo com
+o professor.
 
 ## Experimentar o motor Prolog
 
