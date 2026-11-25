@@ -43,7 +43,75 @@ docs/                P7  apresentação
 | `prolog/tests/` | Testes PlUnit de regras e ranking | P7 |
 | `docs/` | Pasta reservada para a apresentação | P7 |
 
-## Executar a interface com a API
+## Executar com Docker Compose
+
+Instale o Docker com o plugin Compose. No Windows, abra o Docker Desktop e
+use contêineres Linux. Não é necessário instalar Python, SWI-Prolog, Node.js
+ou Elm na máquina para usar este caminho.
+
+Na raiz do repositório:
+
+```sh
+docker compose up --build -d --wait
+```
+
+Abra o [planejador](http://127.0.0.1:8000/) ou o
+[Swagger](http://127.0.0.1:8000/docs). A primeira construção baixa imagens e
+dependências, compila o Elm e instala a integração Janus com o SWI-Prolog.
+O comando espera a API responder ao teste de saúde antes de terminar.
+
+```sh
+docker compose logs -f app
+docker compose down
+```
+
+O primeiro comando acompanha os logs; encerre esse acompanhamento com
+Ctrl+C. O segundo para e remove o contêiner da aplicação. Após editar o
+código, execute novamente `docker compose up --build -d --wait`.
+
+Se a porta 8000 estiver ocupada, no PowerShell defina `$env:PORTA = "8001"`
+antes de subir e acesse `http://127.0.0.1:8001/`.
+
+### Testes pelo Docker
+
+Na raiz, rode as três suítes com um comando:
+
+```sh
+docker compose run --build --rm testes
+```
+
+O serviço de testes executa PlUnit, pytest e elm-test, nessa ordem, e termina
+com código diferente de zero se uma suíte falhar. Ele usa os dados
+versionados e o motor Prolog real; não depende da aplicação estar aberta.
+O perfil `testes` mantém esse serviço fora da inicialização normal.
+
+Para executar uma suíte isoladamente:
+
+```sh
+docker compose run --build --rm testes swipl -s prolog/tests/regras.pl -s prolog/tests/ranking.pl -s prolog/tests/oferta.pl -g run_tests -t halt
+docker compose run --build --rm -w /app/backend testes python -m pytest -q
+docker compose run --build --rm -w /app/frontend testes elm-test
+```
+
+A formatação é uma verificação separada; este comando apenas aponta os
+arquivos fora do padrão, sem alterá-los:
+
+```sh
+docker compose run --build --rm -w /app/frontend testes elm-format --validate src tests
+```
+
+O Dockerfile separa a compilação Elm, a instalação Python/Janus, a aplicação
+e as ferramentas de teste. As dependências usam `backend/uv.lock` e
+`frontend/package-lock.json`; Elm e elm-test estão fixados em `0.19.2-0`.
+O `uv` segue a [integração oficial com Docker](https://docs.astral.sh/uv/guides/integration/docker/).
+O Debian Trixie fornece o [SWI-Prolog 9.2.9](https://packages.debian.org/trixie/swi-prolog-nox).
+
+Docker ajuda a reproduzir a execução e os testes pedidos nas seções 3 e 8
+do relatório. O relatório, a demonstração no navegador e o validador de
+entrega continuam sendo verificações próprias. Os testes existentes não
+automatizam a navegação pela interface.
+
+## Executar a interface com a API sem Docker
 
 ### Pré-requisitos
 
@@ -161,6 +229,20 @@ disciplina. Em `prerequisitos`, uma string vazia representa a ausência de
 pré-requisitos na fonte e `null` representa um dado ausente da tabela de
 optativas. O gerador aplica os pré-requisitos publicados no catálogo e usa os
 horários e as vagas da oferta importada. [Projeto Pedagógico do Curso](https://software.unb.br/images/ESW/PPC_Software_2024_12_16.pdf)
+
+## Testes Elm sem Docker
+
+Com Node.js e npm instalados, use as versões fixadas no projeto:
+
+```sh
+cd frontend
+npm ci
+npm test
+```
+
+São 73 testes de horários, distribuição das aulas na semana, contrato JSON
+e visualização das grades. `npm run build` compila a interface, e
+`npm run format:check` confere a formatação sem editar arquivos.
 
 ## Testes PlUnit
 

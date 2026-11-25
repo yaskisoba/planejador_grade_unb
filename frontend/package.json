@@ -1,0 +1,15 @@
+{
+  "name": "planejador-grade-unb-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "elm make src/Main.elm --optimize --output=build/index.html",
+    "test": "elm-test",
+    "format:check": "elm-format --validate src tests"
+  },
+  "devDependencies": {
+    "elm": "0.19.2-0",
+    "elm-format": "0.8.8",
+    "elm-test": "0.19.2-0"
+  }
+}

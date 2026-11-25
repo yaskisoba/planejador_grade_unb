@@ -1,0 +1,27 @@
+name: planejador-grade-unb
+
+services:
+  app:
+    build:
+      context: .
+      target: app
+    ports:
+      - "127.0.0.1:${PORTA:-8000}:8000"
+    init: true
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json, urllib.request; r = urllib.request.urlopen('http://127.0.0.1:8000/api/saude', timeout=3); assert json.load(r) == {'status': 'ok'}"
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  testes:
+    profiles: [testes]
+    build:
+      context: .
+      target: testes
+    init: true
