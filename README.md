@@ -7,7 +7,7 @@ prolog/turmas.pl     P3  base de turmas
 backend/             P3  API (uv + janus_swi)
 frontend/src/        P4, P5, P6  Elm
 frontend/tests/      P7  elm-test
-tests/prolog/        P7  plunit
+prolog/tests/        P7  plunit
 docs/                P7  apresentação
 ```
 
@@ -35,11 +35,12 @@ docs/                P7  apresentação
 | `prolog/ranking.pl` | Cálculo da pontuação e seleção das melhores grades | P2 |
 | `prolog/turmas.pl` | Base demonstrativa para os testes e carregamento da oferta para a API | P3 |
 | `backend/server.py` | API FastAPI que consulta o Prolog via janus | P3 |
+| `backend/tests/` | Testes da importação e integração Python–Prolog com a oferta real | P7 |
 | `backend/catalogo_unb.json` | Catálogo curricular da Engenharia de Software da FCTE | P3 |
 | `backend/oferta_sigaa_2026_2.json` | Horários e vagas da oferta do Campus Gama | P3 |
 | `frontend/src/` | Interface Elm | P4, P5, P6 |
 | `frontend/tests/` | Testes Elm | P7 |
-| `tests/prolog/` | Testes PlUnit de regras e ranking | P7 |
+| `prolog/tests/` | Testes PlUnit de regras e ranking | P7 |
 | `docs/` | Pasta reservada para a apresentação | P7 |
 
 ## Executar a interface com a API
@@ -164,15 +165,47 @@ horários e as vagas da oferta importada. [Projeto Pedagógico do Curso](https:/
 ## Testes PlUnit
 
 Instale o SWI-Prolog, coloque `swipl` no PATH e execute o comando abaixo
-na raiz do projeto. A suíte foi verificada com SWI-Prolog 9.2.9.
+na raiz do projeto. A suíte foi verificada com SWI-Prolog 11.0.1.
 
 ```sh
-swipl -s tests/prolog/regras.plt -s tests/prolog/ranking.plt -g run_tests -t halt
+swipl -s prolog/tests/regras.pl -s prolog/tests/ranking.pl -s prolog/tests/oferta.pl -g run_tests -t halt
 ```
 
-São 51 casos, com 22 em regras e 29 em ranking. A suíte verifica a interpretação
+São 61 casos, com 22 em regras, 29 em ranking e 10 em oferta. A suíte verifica a interpretação
 de horários, a geração de grades, a pontuação e a integração entre regras e
-ranking no Prolog.
+ranking no Prolog. Os testes de oferta cobrem pré-requisitos com “e”, “ou” e
+grupos mistos, conversão dos dados, substituição da base, recarregamento sem
+duplicatas e preservação da base anterior quando uma carga falha. As alterações
+de fatos nesses testes são isoladas com `snapshot/1`.
+
+Os testes ficam em `prolog/tests/` e usam a extensão `.pl` para serem
+descobertos pelo script de avaliação `scripts/metricas.py`, que procura
+arquivos `.pl` com `begin_tests`.
+
+## Testes da integração com a oferta real
+
+Com os pré-requisitos do backend instalados, execute a partir da raiz:
+
+```sh
+cd backend
+uv sync --locked
+uv run --locked pytest -q
+```
+
+São 7 testes em `backend/tests/test_oferta.py`: quatro verificam a interpretação
+dos textos de pré-requisitos, incluindo formatos inválidos, e três exercitam a
+integração Python–Janus–Prolog com os JSONs versionados de 2026/2. Confirmam as
+três turmas de `FGA0210`, a exclusão da turma `01` pelo bloqueio `3T4` e a ausência
+de resultados quando falta qualquer um dos pré-requisitos.
+
+Esses testes usam o motor real, sem respostas simuladas nem consulta ao SIGAA.
+Não é necessário iniciar o servidor: eles chamam a função usada pelo endpoint,
+sem testar o transporte HTTP ou o navegador. Ao atualizar os dados para outro
+semestre, revise também os resultados esperados. O `pytest` está declarado como
+dependência de desenvolvimento e os testes são reconhecidos por
+`scripts/metricas.py`. A configuração desativa o carregamento automático de
+plugins externos do pytest para evitar interferência de ferramentas instaladas
+na máquina, como o ROS.
 
 <!-- ## Cenários para elm-test e ponta a ponta
 

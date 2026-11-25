@@ -1,5 +1,5 @@
-:- use_module('../../prolog/ranking').
-:- use_module('../../prolog/regras').
+:- use_module('../ranking').
+:- use_module('../regras').
 
 :- begin_tests(ranking).
 
