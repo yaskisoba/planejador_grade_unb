@@ -18,11 +18,12 @@ docs/                P7  apresentação
 - **Ranking Prolog:** retorno de até cinco grades válidas, priorizando menos
   períodos livres entre aulas e depois menos dias no campus. A pontuação é
   `7 × janelas + dias`; quanto menor, melhor.
-- **Base e testes.** Base demonstrativa com 4 disciplinas e 8 turmas e
-  51 testes Prolog (22 de regras e 29 de ranking).
+- **Catálogo e turmas.** O catálogo curricular contém 42 disciplinas obrigatórias
+  e 60 optativas da Engenharia de Software da FCTE. A geração de grades usa
+  162 turmas de 66 disciplinas do Campus Gama ofertadas em 2026/2.
 - **Interface Elm:** seleção de disciplinas cursadas e desejadas, grade clicável
   para horários bloqueados e ciclo de requisição HTTP com estados de carregamento,
-  erro e resultados. O catálogo atual acompanha a base demonstrativa Prolog.
+  erro e resultados. A interface carrega as disciplinas pela API.
 - **API Python.** O FastAPI recebe a requisição do Elm e consulta o motor
   Prolog via Janus para retornar as grades sugeridas.
 
@@ -32,8 +33,10 @@ docs/                P7  apresentação
 | --- | --- | --- |
 | `prolog/regras.pl` | Restrições de montagem da grade com CLP(FD) | P1 |
 | `prolog/ranking.pl` | Cálculo da pontuação e seleção das melhores grades | P2 |
-| `prolog/turmas.pl` | Base demonstrativa de disciplinas, turmas e pré-requisitos | P3 |
+| `prolog/turmas.pl` | Base demonstrativa para os testes e carregamento da oferta para a API | P3 |
 | `backend/server.py` | API FastAPI que consulta o Prolog via janus | P3 |
+| `backend/catalogo_unb.json` | Catálogo curricular da Engenharia de Software da FCTE | P3 |
+| `backend/oferta_sigaa_2026_2.json` | Horários e vagas da oferta do Campus Gama | P3 |
 | `frontend/src/` | Interface Elm | P4, P5, P6 |
 | `frontend/tests/` | Testes Elm | P7 |
 | `tests/prolog/` | Testes PlUnit de regras e ranking | P7 |
@@ -80,6 +83,15 @@ horários bloqueados. Clique em **Gerar grades** para enviar a consulta à API e
 ver a primeira sugestão na tabela semanal. Use o seletor de opções para alternar
 entre as grades retornadas.
 
+**Já cursei** lista todas as disciplinas da matriz 6360/2. **Quero cursar**
+lista as disciplinas com turma cadastrada no Campus Gama em 2026/2. Ambas as
+listas têm busca por código ou nome. Uma turma cadastrada pode estar com as
+vagas ocupadas.
+
+A oferta foi consultada em 25/11/2026. A API usa uma cópia versionada e o motor
+calcula as vagas disponíveis pela diferença entre vagas ofertadas e ocupadas
+nessa consulta. A grade semanal combina os horários publicados de cada turma,+inclusive quando o SIGAA informa datas de vigência diferentes. [Consulta de Turmas do SIGAA](https://sigaa.unb.br/sigaa/public/turmas/listar.jsf)
+
 ### Testar pelo Swagger
 
 Em `GET /api/saude`, clique em **Try it out** e **Execute**. A resposta esperada
@@ -88,24 +100,34 @@ abaixo em **Request body** e execute.
 
 ```json
 {
-  "cursadas": ["FGA0158"],
-  "desejadas": ["FGA0210", "FGA0244"],
+  "cursadas": ["FGA0158", "FGA0003"],
+  "desejadas": ["FGA0210"],
   "bloqueados": []
 }
 ```
 
-Em **Server response**, o resultado esperado é `200` com três grades de
-pontuação `4`, `4` e `24`. Alterar `bloqueados` para `["2M3"]` deixa uma grade
-com as duas turmas B.
+Em **Server response**, o resultado esperado é `200` com as turmas `01`,
+`02` e `03` de Paradigmas de Programação. Alterar `bloqueados` para `["3T4"]`
+exclui a turma `01`. Os horários publicados para essa disciplina também estão
+em [`GET /api/turmas?codigo=FGA0210`](http://127.0.0.1:8000/api/turmas?codigo=FGA0210).
 
 | Rota | Entrada | Saída |
 | --- | --- | --- |
+| `GET /api/disciplinas` | nada | Matriz, fonte, origem das turmas e lista de disciplinas com código, nome, categoria, carga horária, créditos, pré-requisitos e indicação de turmas |
+| `GET /api/turmas` | `codigo` opcional | Período, fonte, data da consulta, horários e contagem de vagas das turmas |
 | `POST /api/gerar-grades` | `{"cursadas": [...], "desejadas": [...], "bloqueados": [...], "peso_janelas": 3, "peso_dias": 2}` | `{"grades": [{"rank", "score", "janelas", "dias_campus", "turmas"}]}` |
 | `GET /api/saude` | nada | `{"status": "ok"}` |
 
 `peso_janelas` e `peso_dias` são aceitos, mas o motor usa sempre a pontuação
 `7 × janelas + dias`. Sem grade compatível, a resposta é `{"grades": []}`.
 Uma lista `desejadas` vazia devolve 400, e tipos errados devolvem 422.
+
+Os dados curriculares foram extraídos das tabelas 41 e 42 do projeto pedagógico
+da Engenharia de Software da FCTE. O catálogo inclui os componentes do tipo
+disciplina. Em `prerequisitos`, uma string vazia representa a ausência de
+pré-requisitos na fonte e `null` representa um dado ausente da tabela de
+optativas. O gerador aplica os pré-requisitos publicados no catálogo e usa os
+horários e as vagas da oferta importada. [Projeto Pedagógico do Curso](https://software.unb.br/images/ESW/PPC_Software_2024_12_16.pdf)
 
 ## Testes PlUnit
 
@@ -131,15 +153,15 @@ SWI-Prolog.
 | --- | --- | --- |
 | elm-test | Preparar uma consulta com disciplinas cursadas, desejadas e horários bloqueados | Os valores selecionados chegam ao formato de entrada adotado pela interface. |
 | elm-test | Interpretar a resposta da API | Os dados das turmas e as métricas ficam disponíveis na ordem recebida. Inclua casos com lista vazia e com erro. |
-| Ponta a ponta | Com `FGA0158` cursada, pedir `FGA0210` e `FGA0244` | A tela exibe três grades com pontuações 4, 4 e 24, nessa ordem. |
-| Ponta a ponta | Repetir a consulta com o bloqueio `2M3` | A tela exibe uma grade com as turmas B de `FGA0210` e `FGA0244`. |
+| Ponta a ponta | Com `FGA0158` e `FGA0003` cursadas, pedir `FGA0210` | A tela exibe três grades. |
+| Ponta a ponta | Repetir a consulta com o bloqueio `3T4` | A tela exibe duas grades, com as turmas `02` e `03` de `FGA0210`. |
 | Ponta a ponta | Pedir `FGA0210` sem ter cursado `FGA0158` | A tela informa que não há grades compatíveis. |
 -->
 
 ## Experimentar o motor Prolog
 
 Na raiz do projeto, execute este comando no PowerShell para abrir o SWI-Prolog
-com o módulo de ranking carregado.
+com o módulo de ranking e a base demonstrativa carregados.
 
 ```powershell
 swipl -s prolog/ranking.pl

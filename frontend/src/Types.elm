@@ -1,9 +1,42 @@
-module Types exposing (Request, encodeRequest)
+module Types exposing (Catalogo, Disciplina, Request, decodeCatalogo, encodeRequest)
 
-{-| Requisição da tela de entrada para a API de geração de grades.
+{-| Dados trocados entre a tela de entrada e a API do planejador.
 -}
 
+import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+
+
+type alias Catalogo =
+    { matriz : String
+    , periodoTurmas : String
+    , disciplinas : List Disciplina
+    }
+
+
+type alias Disciplina =
+    { codigo : String
+    , nome : String
+    , creditos : Int
+    , temTurmas : Bool
+    }
+
+
+decodeCatalogo : Decoder Catalogo
+decodeCatalogo =
+    Decode.map3 Catalogo
+        (Decode.field "matriz" Decode.string)
+        (Decode.field "periodo_turmas" Decode.string)
+        (Decode.field "disciplinas" (Decode.list decodeDisciplina))
+
+
+decodeDisciplina : Decoder Disciplina
+decodeDisciplina =
+    Decode.map4 Disciplina
+        (Decode.field "codigo" Decode.string)
+        (Decode.field "nome" Decode.string)
+        (Decode.field "creditos" Decode.int)
+        (Decode.field "tem_turmas" Decode.bool)
 
 
 type alias Request =
