@@ -77,7 +77,8 @@ uv run --locked --python 3.14 start
 
 Na tela do planejador, selecione as disciplinas cursadas, as desejadas e os
 horários bloqueados. Clique em **Gerar grades** para enviar a consulta à API e
-ver o resumo das sugestões.
+ver a primeira sugestão na tabela semanal. Use o seletor de opções para alternar
+entre as grades retornadas.
 
 ### Testar pelo Swagger
 
