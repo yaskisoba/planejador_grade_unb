@@ -43,3 +43,6 @@ test-backend:
 
 test-frontend:
 	cd frontend && npm test
+
+validar:            ## confere a forma do RELATORIO.md e das avaliações 360
+	uv run scripts/validar_entrega.py

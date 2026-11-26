@@ -456,6 +456,8 @@ trechos da implementação. Seu uso também apoiou a análise de erros, os teste
 e a documentação. Os resultados foram conferidos pela compilação, pelos
 testes automatizados e pela execução dos fluxos da aplicação.
 
+**Faixa de uso no código:** auxiliar
+
 | Ferramenta | Para que foi usada | Como o grupo verificou o resultado |
 |------------|--------------------|------------------------------------|
 | Codex (OpenAI) / Claude | Auxílio na montagem do código, com geração e ajuste de trechos, integração entre componentes, correção de erros, criação de testes, configuração do Makefile e organização da documentação | Compilação do Elm, execução das suítes PlUnit, pytest e elm-test, consultas à API com Prolog real e verificação da geração de grades no navegador |
@@ -463,16 +465,16 @@ testes automatizados e pela execução dos fluxos da aplicação.
 
 ## 12. Apresentação oral
 
-- **Slides:** [Caminho dos slides, link ou não há]
+- **Slides:** (https://canva.link/oa6g6is5446x5zd)
 - **Roteiro:** proposta de 15 minutos; definir responsáveis e garantir a participação de todos.
 
 | Parte | Duração | Quem apresenta |
 |-------|:-------:|----------------|
-| Contexto, público e objetivo | 2 min | Filipe Carvalho |
-| Demonstração: seleção, geração, bloqueio e comparação de grades | 5 min | Yasmim Oliveira, Joao Victor |
-| Prolog: restrições CLP(FD), pré-requisitos e ranking | 3 min | Gabriel Felipe  |
-| Elm: Model, Msg, update e interpretação dos horários | 3 min | Cibelly Lourenço |
-| Limitações e aprendizados | 2 min | Fabio Gabriel |
+| Contexto, público e objetivo | 2 min | Filipe Carvalho da Silva |
+| Demonstração: seleção, geração, bloqueio e comparação de grades | 5 min | Yasmim Oliveira Rosa, Joao Victor Marques Reis de Miranda |
+| Prolog: restrições CLP(FD), pré-requisitos e ranking | 3 min | Gabriel Felipe Mesquita Esteves   |
+| Elm: Model, Msg, update e interpretação dos horários | 3 min | Cibelly Lourenço Ferreira |
+| Limitações e aprendizados | 2 min | Fabio Gabriel da Silva Barbosa |
 
 ## 13. Reflexão sobre os paradigmas
 
