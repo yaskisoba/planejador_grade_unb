@@ -374,6 +374,43 @@ body:has(.app) {
   border-top: 1px solid var(--grade-linha);
 }
 
+.pesos {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--grade-linha);
+  border-radius: 8px;
+  background: var(--grade-apoio);
+}
+
+.pesos-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+  gap: 0.875rem;
+  margin-top: 0.75rem;
+}
+
+.peso-campo {
+  display: grid;
+  gap: 0.375rem;
+  color: var(--grade-texto);
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+
+.peso-campo input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--grade-linha);
+  border-radius: 6px;
+  background: white;
+  color: var(--grade-texto);
+}
+
+.peso-campo input:focus {
+  border-color: var(--grade-destaque);
+}
+
 .app-acao-titulo {
   font-weight: 600;
 }

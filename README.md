@@ -21,8 +21,9 @@ docs/                P7  apresentação
   e 60 optativas da Engenharia de Software da FCTE. A geração de grades usa
   162 turmas de 66 disciplinas do Campus Gama ofertadas em 2026/2.
 - **Interface Elm:** seleção de disciplinas cursadas e desejadas, grade clicável
-  para horários bloqueados e ciclo de requisição HTTP com estados de carregamento,
-  erro e resultados. A interface carrega as disciplinas pela API.
+  para horários bloqueados, pesos configuráveis para janelas e dias no campus e
+  ciclo HTTP com estados de carregamento, erro e resultados. A interface carrega
+  as disciplinas pela API.
 - **API Python.** O FastAPI recebe a requisição do Elm e consulta o motor
   Prolog via Janus para retornar as grades sugeridas.
 
@@ -220,8 +221,9 @@ em [`GET /api/turmas?codigo=FGA0210`](http://127.0.0.1:8000/api/turmas?codigo=FG
 
 `peso_janelas` e `peso_dias` definem a pontuação e a ordem das grades:
 `peso_janelas × janelas + peso_dias × dias_campus`. Os valores padrão da API
-são 7 e 1; a interface envia 3 e 2. Sem grade compatível, a resposta é
-`{"grades": []}`.
+são 7 e 1; na interface, ambos podem ser ajustados para qualquer inteiro
+não negativo e começam em 3 e 2. Um peso maior dá mais influência ao critério;
+0 ignora o critério. Sem grade compatível, a resposta é `{"grades": []}`.
 Uma lista `desejadas` vazia devolve 400, e tipos errados devolvem 422.
 
 Os dados curriculares foram extraídos das tabelas 41 e 42 do projeto pedagógico
