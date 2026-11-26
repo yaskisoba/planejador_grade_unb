@@ -2,7 +2,8 @@
     metricas_grade/3,
     pontuacao_grade/2,
     top_5_grades/4,
-    top_5_grades/6
+    top_5_grades/6,
+    top_5_grades_pesos/6
 ]).
 
 :- use_module(library(apply)).
@@ -48,7 +49,10 @@ pontuacao_grade(Grade, Pontuacao) :-
     pontuacao(Janelas, DiasCampus, Pontuacao).
 
 pontuacao(Janelas, DiasCampus, Pontuacao) :-
-    Pontuacao is 7 * Janelas + DiasCampus.
+    pontuacao(Janelas, DiasCampus, 7, 1, Pontuacao).
+
+pontuacao(Janelas, DiasCampus, PesoJanelas, PesoDias, Pontuacao) :-
+    Pontuacao is PesoJanelas * Janelas + PesoDias * DiasCampus.
 
 %! top_5_grades(+Cursadas, +Desejadas, +Bloqueados, -Top5) is det.
 %
@@ -63,11 +67,20 @@ top_5_grades(Cursadas, Desejadas, Bloqueados, Top5) :-
 top_5_grades(Cursadas, Desejadas, Bloqueados, Min, Max, Top5) :-
     melhores_cinco(grade(Cursadas, Desejadas, Bloqueados, Min, Max), Top5).
 
+%! top_5_grades_pesos(+Cursadas, +Desejadas, +Bloqueados, +PesoJanelas, +PesoDias, -Top5) is det.
+%
+%  Igual a top_5_grades/4, mas usa os pesos informados para ordenar e pontuar.
+top_5_grades_pesos(Cursadas, Desejadas, Bloqueados, PesoJanelas, PesoDias, Top5) :-
+    melhores_cinco(grade(Cursadas, Desejadas, Bloqueados), PesoJanelas, PesoDias, Top5).
+
 melhores_cinco(GerarGrade, Top5) :-
+    melhores_cinco(GerarGrade, 7, 1, Top5).
+
+melhores_cinco(GerarGrade, PesoJanelas, PesoDias, Top5) :-
     findall(resultado(Pontuacao, Janelas, DiasCampus, Grade),
             ( call(GerarGrade, Grade),
               metricas_grade(Grade, Janelas, DiasCampus),
-              pontuacao(Janelas, DiasCampus, Pontuacao) ),
+              pontuacao(Janelas, DiasCampus, PesoJanelas, PesoDias, Pontuacao) ),
             Resultados),
     % Ordenar antes de limitar garante o Top 5 global. sort/2 remove apenas
     % resultados identicos; grades distintas empatadas continuam na lista.
