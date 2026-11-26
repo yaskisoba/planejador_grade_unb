@@ -219,11 +219,13 @@ em [`GET /api/turmas?codigo=FGA0210`](http://127.0.0.1:8000/api/turmas?codigo=FG
 | `POST /api/gerar-grades` | `{"cursadas": [...], "desejadas": [...], "bloqueados": [...], "peso_janelas": 3, "peso_dias": 2}` | `{"grades": [{"rank", "score", "janelas", "dias_campus", "turmas"}]}` |
 | `GET /api/saude` | nada | `{"status": "ok"}` |
 
-`peso_janelas` e `peso_dias` definem a pontuação e a ordem das grades:
+`peso_janelas` e `peso_dias` definem a pontuação das grades:
 `peso_janelas × janelas + peso_dias × dias_campus`. Os valores padrão da API
 são 7 e 1; na interface, ambos podem ser ajustados para qualquer inteiro
 não negativo e começam em 3 e 2. Um peso maior dá mais influência ao critério;
-0 ignora o critério. Sem grade compatível, a resposta é `{"grades": []}`.
+peso 0 zera sua contribuição direta na pontuação. Quando há empate, o motor
+desempata por número de janelas, dias no campus e depois pela grade. Sem grade
+compatível, a resposta é `{"grades": []}`.
 Uma lista `desejadas` vazia devolve 400, e tipos errados devolvem 422.
 
 Os dados curriculares foram extraídos das tabelas 41 e 42 do projeto pedagógico

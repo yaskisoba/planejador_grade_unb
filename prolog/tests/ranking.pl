@@ -111,6 +111,11 @@ test(pesos_personalizados_alteram_ordenacao_e_pontuacao) :-
     resumo(Top5, Resumo),
     assertion(Resumo == [3-1-1-[teste-janela], 4-0-2-[teste-concentrada]]).
 
+test(pesos_zero_zeram_score_mas_preservam_desempate_por_metricas) :-
+    ranking:melhores_cinco(plunit_ranking:grade_ponderada, 0, 0, Top5),
+    resumo(Top5, Resumo),
+    assertion(Resumo == [0-0-2-[teste-concentrada], 0-1-1-[teste-janela]]).
+
 test(integracao_com_regras_e_menos_de_cinco_resultados) :-
     top_5_grades(['FGA0158'], ['FGA0210', 'FGA0244'], [], Top5),
     resumo(Top5, Resumo),

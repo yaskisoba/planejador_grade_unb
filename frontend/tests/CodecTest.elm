@@ -18,12 +18,12 @@ suite =
                         { cursadas = [ "FGA0158" ]
                         , desejadas = [ "FGA0244", "FGA0210" ]
                         , bloqueados = slots [ "2M12", "6T34" ]
-                        , pesoJanelas = 3
-                        , pesoDias = 2
+                        , pesoJanelas = 5
+                        , pesoDias = 0
                         }
                         |> Encode.encode 0
                         |> Expect.equal
-                            """{"cursadas":["FGA0158"],"desejadas":["FGA0244","FGA0210"],"bloqueados":["2M1","2M2","6T3","6T4"],"peso_janelas":3,"peso_dias":2}"""
+                            """{"cursadas":["FGA0158"],"desejadas":["FGA0244","FGA0210"],"bloqueados":["2M1","2M2","6T3","6T4"],"peso_janelas":5,"peso_dias":0}"""
             , test "mantém as listas vazias" <|
                 \_ ->
                     Codec.requisicaoParaJson
