@@ -456,7 +456,7 @@ trechos da implementação. Seu uso também apoiou a análise de erros, os teste
 e a documentação. Os resultados foram conferidos pela compilação, pelos
 testes automatizados e pela execução dos fluxos da aplicação.
 
-**Faixa de uso no código:** auxiliar
+- **Faixa de uso no código:** auxiliar
 
 | Ferramenta | Para que foi usada | Como o grupo verificou o resultado |
 |------------|--------------------|------------------------------------|
