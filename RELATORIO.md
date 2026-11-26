@@ -6,19 +6,19 @@ Relatório do grupo GradeHoráriaGX para o trabalho final de Paradigmas de Progr
 
 | Nome completo | Matrícula | Turma (14h/16h) | Usuário GitHub |
 |---------------|-----------|-----------------|----------------|
-| Gabriel Felipe Mesquita Esteves | 190106956 | [16h] | [Usuário GitHub] |
-| Filipe Carvalho da Silva | 211030747 | [16h] | [Usuário GitHub] |
-| Joao Victor Marques Reis de Miranda | 200058576 | [16h] | [Usuário GitHub] |
-| Yasmim Oliveira Rosa | 200029088 | [16h] | [Usuário GitHub] |
-| Fabio Gabriel da Silva Barbosa | 222006712 | [16h] | [Usuário GitHub] |
-| Cibelly Lourenço Ferreira | [Matrícula] | [Turma] | @cibelinda |
+| Gabriel Felipe Mesquita Esteves | 190106956 | 16h | @GabrielMEsteves |
+| Filipe Carvalho da Silva | 211030747 | 16h | @Filipe-002 |
+| Joao Victor Marques Reis de Miranda | 200058576 | 16h | @jmarquees |
+| Yasmim Oliveira Rosa | 200029088 | 16h | @yaskisoba |
+| Fabio Gabriel da Silva Barbosa | 222006712 | 16h | @fabinsz |
+| Cibelly Lourenço Ferreira | 231026680 | 16h | @cibelinda |
 
 - **Nome do projeto:** Planejador de Grade Horária da UnB
 - **Nome do grupo:** GradeHoráriaGX
 - **Repositório:** https://github.com/yaskisoba/planejador_grade_unb
 - **Commit ou tag entregue:** [Commit ou tag final]
-- **Ponto de partida:** Criado
-- **Slides da apresentação oral:** [Caminho dos slides, link ou não há]
+- **Ponto de partida:** jogo inventado
+- **Slides da apresentação oral:** (https://canva.link/oa6g6is5446x5zd)
 
 O sistema é um planejador acadêmico. Como as faixas do modelo se referem a
 jogos, o enquadramento e a aprovação do tema precisam ser confirmados com o
@@ -402,14 +402,7 @@ três opções de `FGA0210` usadas na captura. Roteiro manual adicional: bloquea
 terça-feira T4, gerar novamente e conferir apenas as turmas `02` e `03`;
 retirar um pré-requisito e conferir a mensagem de ausência de grades.
 
-Após preencher os dados pendentes, executar o validador de forma do relatório:
 
-```sh
-uv run scripts/validar_entrega.py
-```
-
-A validação final depende do preenchimento das turmas, usuários GitHub,
-versão de entrega, enquadramento do tema e dados da apresentação.
 
 ## 9. Limitações e problemas conhecidos
 
@@ -435,12 +428,12 @@ na seção 11.
 
 | Integrante | Principais contribuições |
 |------------|--------------------------|
-| Gabriel Felipe Mesquita Esteves | Métricas, classificação e Top 5 em Prolog, com testes de ranking; commit `c9cc227`. Conteinerização, fluxo de testes em Docker e dependências npm em `f2957c7` |
-| Filipe Carvalho da Silva | Estado inicial da aplicação Elm, mensagens, atualização e integração HTTP; commit `d6a3b6d` |
-| Joao Victor Marques Reis de Miranda | Filtros de disciplinas e horários bloqueados em `582aa4b`. Pesos configuráveis no Elm, na API e no Prolog, com validação e testes, em `f6c18d1` e `4ce2430` |
-| Yasmim Oliveira Rosa | Organização inicial, regras Prolog, base demonstrativa e testes de regras; commits `a43fe5e`, `60d5b62` e `ab271c0` |
-| Cibelly Lourenço Ferreira | Interpretação de horários, codecs JSON, distribuição semanal, GradeView, estilos da grade, demonstração e testes Elm; commits de `67263c2` a `ca80575` |
-| Fabio Gabriel da Silva Barbosa | Integração de GradeView com a API, catálogo e oferta SIGAA, requisitos compostos, padronização visual, correção de compilação, 21 testes adicionais e documentação; commits `75cb368`, `ee754d0`, `426e6f3`, `171684f`, `66df144`, `4ad5de8`, `c01c3ae` e `c2e9cf5`. Fluxo de Make e relatório em `45f818c`, integração com a main e atualização da documentação em `e533b84` |
+| Gabriel Felipe Mesquita Esteves | Métricas, classificação e Top 5 em Prolog, com testes de ranking. Conteinerização, fluxo de testes em Docker e dependências npm  |
+| Filipe Carvalho da Silva | Estado inicial da aplicação Elm, mensagens, atualização e integração HTTP |
+| Joao Victor Marques Reis de Miranda | Filtros de disciplinas e horários bloqueados. Pesos configuráveis no Elm, na API e no Prolog, com validação e testes|
+| Yasmim Oliveira Rosa | Organização inicial, regras Prolog, base demonstrativa e testes de regras` |
+| Cibelly Lourenço Ferreira | Interpretação de horários, codecs JSON, distribuição semanal, GradeView, estilos da grade, demonstração e testes Elm |
+| Fabio Gabriel da Silva Barbosa | Integração de GradeView com a API, catálogo e oferta SIGAA, requisitos compostos, padronização visual |
 
 ## 11. Fontes, código de terceiros e uso de IA
 
@@ -448,14 +441,6 @@ na seção 11.
 mas adotou a arquitetura Elm–FastAPI–Janus–Prolog. Os scripts de avaliação do
 professor foram incorporados ao diretório `scripts/`; o script `scripts/testar.sh`
 faz parte do fluxo de testes Docker do projeto.
-
-O histórico também registra a contribuição de um autor que não está na
-composição atual dos seis integrantes informados para a entrega:
-
-- **Johan Marcos Gomes da Rocha:** configuração Python com uv, API FastAPI–Janus, entrega do frontend e correção de dependências Elm; commits `0084a55`, `e154b15`, `de70c74`, `9068189` e `0bedc30`. O rascunho de relatório no commit `894c047`, em outra branch, também serviu de referência para a documentação.
-
-Essas contribuições permanecem creditadas a Johan e não são atribuídas aos
-integrantes da tabela anterior.
 
 **Referências e fontes dos dados.**
 
@@ -471,16 +456,10 @@ trechos da implementação. Seu uso também apoiou a análise de erros, os teste
 e a documentação. Os resultados foram conferidos pela compilação, pelos
 testes automatizados e pela execução dos fluxos da aplicação.
 
-- **Faixa de uso no código:** auxiliar
-
 | Ferramenta | Para que foi usada | Como o grupo verificou o resultado |
 |------------|--------------------|------------------------------------|
-| Codex (OpenAI) | Auxílio na montagem do código, com geração e ajuste de trechos, integração entre componentes, correção de erros, criação de testes, configuração do Makefile e organização da documentação | Compilação do Elm, execução das suítes PlUnit, pytest e elm-test, consultas à API com Prolog real e verificação da geração de grades no navegador |
+| Codex (OpenAI) / Claude | Auxílio na montagem do código, com geração e ajuste de trechos, integração entre componentes, correção de erros, criação de testes, configuração do Makefile e organização da documentação | Compilação do Elm, execução das suítes PlUnit, pytest e elm-test, consultas à API com Prolog real e verificação da geração de grades no navegador |
 
-Na contribuição de Johan citada acima, o rascunho `894c047` declara auxílio
-do Claude (Anthropic) na API e na documentação, com teste da API contra o
-Prolog real. Esse registro é mantido como informação de origem do material
-incorporado.
 
 ## 12. Apresentação oral
 
@@ -489,11 +468,11 @@ incorporado.
 
 | Parte | Duração | Quem apresenta |
 |-------|:-------:|----------------|
-| Contexto, público e objetivo | 2 min | [Integrantes] |
-| Demonstração: seleção, geração, bloqueio e comparação de grades | 5 min | [Integrantes] |
-| Prolog: restrições CLP(FD), pré-requisitos e ranking | 3 min | [Integrantes] |
-| Elm: Model, Msg, update e interpretação dos horários | 3 min | [Integrantes] |
-| Limitações e aprendizados | 2 min | [Integrantes] |
+| Contexto, público e objetivo | 2 min | Filipe Carvalho |
+| Demonstração: seleção, geração, bloqueio e comparação de grades | 5 min | Yasmim Oliveira, Joao Victor |
+| Prolog: restrições CLP(FD), pré-requisitos e ranking | 3 min | Gabriel Felipe  |
+| Elm: Model, Msg, update e interpretação dos horários | 3 min | Cibelly Lourenço |
+| Limitações e aprendizados | 2 min | Fabio Gabriel |
 
 ## 13. Reflexão sobre os paradigmas
 
