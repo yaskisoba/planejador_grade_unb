@@ -1,31 +1,29 @@
-# Planejador Inteligente de Grade Horária da UnB
+# Planejador de Grade Horária da UnB
 
-Versão de trabalho: os campos entre colchetes serão preenchidos pelo grupo.
-As contribuições e a reflexão devem ser revisadas pelos integrantes antes da entrega.
+Relatório do grupo GradeHoráriaGX para o trabalho final de Paradigmas de Programação.
 
 ## 1. Identificação
 
 | Nome completo | Matrícula | Turma (14h/16h) | Usuário GitHub |
 |---------------|-----------|-----------------|----------------|
-| Yasmim Rosa | [Matrícula] | [Turma] | [Usuário GitHub] |
-| GabrielMEsteves | [Matrícula] | [Turma] | [Usuário GitHub] |
-| Filipe | [Matrícula] | [Turma] | [Usuário GitHub] |
-| jmarquees | [Matrícula] | [Turma] | [Usuário GitHub] |
-| Cibelly Lourenço Ferreira | [Matrícula] | [Turma] | [Usuário GitHub] |
-| Fabio Gabriel | [Matrícula] | [Turma] | [Usuário GitHub] |
-
+| Gabriel Felipe Mesquita Esteves | 190106956 | [16h] | [Usuário GitHub] |
+| Filipe Carvalho da Silva | 211030747 | [16h] | [Usuário GitHub] |
+| Joao Victor Marques Reis de Miranda | 200058576 | [16h] | [Usuário GitHub] |
+| Yasmim Oliveira Rosa | 200029088 | [16h] | [Usuário GitHub] |
+| Fabio Gabriel da Silva Barbosa | 222006712 | [16h] | [Usuário GitHub] |
+| Cibelly Lourenço Ferreira | [Matrícula] | [Turma] | @cibelinda |
 
 - **Nome do projeto:** Planejador de Grade Horária da UnB
-- **Nome do grupo:** [Nome do grupo]
-- **Repositório:** [URL do repositório GitHub]
+- **Nome do grupo:** GradeHoráriaGX
+- **Repositório:** https://github.com/yaskisoba/planejador_grade_unb
 - **Commit ou tag entregue:** [Commit ou tag final]
-- **Ponto de partida:** [Faixa de escopo confirmada pelo professor]
+- **Ponto de partida:** Criado
 - **Slides da apresentação oral:** [Caminho dos slides, link ou não há]
 
 O sistema é um planejador acadêmico. Como as faixas do modelo se referem a
 jogos, o enquadramento e a aprovação do tema precisam ser confirmados com o
-professor. O commit ou tag de entrega deve ser definido depois de concluir a revisão
-do relatório e incorporar as atualizações da main.
+professor. O commit ou tag de entrega deve identificar a versão final do código
+e deste relatório, após a revisão do grupo.
 
 ## 2. Resumo
 
@@ -42,6 +40,11 @@ desejada e nenhum bloqueio. A primeira opção corresponde à turma `01`.
 
 ## 3. Como executar
 
+Há duas formas de executar: ambiente local com Make ou contêineres com Docker Compose.
+Em ambas, o backend entrega a API e o frontend compilado no mesmo endereço.
+
+### 3.1 Ambiente local com Make
+
 **Requisitos e versões verificadas:**
 
 - SWI-Prolog 11.0.1; o Janus exige pelo menos 9.1.12 e `swipl` no PATH.
@@ -50,56 +53,101 @@ desejada e nenhum bloqueio. A primeira opção corresponde à turma `01`.
 - GNU Make 4.3.
 - Elm 0.19.2 e elm-test 0.19.2-0, instalados por `npm ci` com as versões de `frontend/package-lock.json`.
 
-**Instalação e execução**, na raiz do repositório:
+Na raiz do repositório:
 
 ```sh
-make install
-make dev
+make install    # instala dependências do projeto e compila o Elm
+make dev        # inicia a API e disponibiliza a interface
 ```
 
-Abra http://127.0.0.1:8000. O backend serve tanto a API quanto a interface
-compilada. O Swagger fica em http://127.0.0.1:8000/docs. Encerre com `Ctrl + C`.
-Se a porta estiver ocupada, use `make dev PORT=8001` e abra http://127.0.0.1:8001.
+Abra http://127.0.0.1:8000. O Swagger fica em http://127.0.0.1:8000/docs.
+Encerre com `Ctrl + C`. Se a porta estiver ocupada:
 
-`make install` prepara as dependências do projeto; SWI-Prolog, Node.js, uv e
-Make devem estar instalados antes. É necessário acesso à internet para os
-downloads iniciais. Repita a instalação quando as dependências mudarem.
+```sh
+make dev PORT=8001
+```
 
-**Atualização durante o desenvolvimento:**
+Nesse caso, abra http://127.0.0.1:8001. `make install` não instala as ferramentas
+do sistema; SWI-Prolog, Node.js, uv e Make devem estar disponíveis antes.
+A instalação inicial exige internet. Repita-a quando as dependências mudarem.
 
-- Arquivos Elm: executar `make build` em outro terminal e atualizar o navegador com `Ctrl + Shift + R`.
+Para atualizar a aplicação durante o desenvolvimento:
+
+- Elm: executar `make build` em outro terminal e atualizar o navegador com `Ctrl + Shift + R`.
 - CSS: salvar e atualizar o navegador.
 - Python: `make dev` reinicia a API automaticamente.
 - Prolog e dados JSON: encerrar e iniciar `make dev` novamente.
 
-**Testes:**
+Os testes não exigem o servidor aberto:
 
 ```sh
-make test
-make test-prolog
-make test-backend
-make test-frontend
+make test           # todas as suítes
+make test-prolog    # PlUnit
+make test-backend   # pytest
+make test-frontend  # elm-test
 ```
 
-O primeiro comando executa todas as suítes; os seguintes executam cada camada
-separadamente. Não é necessário manter o servidor aberto.
+### 3.2 Contêineres com Docker Compose
 
-**Alternativa com Docker Compose:**
+**Requisitos:** Docker Engine com o plugin Compose, ou Docker Desktop usando
+contêineres Linux. O Compose disponível na máquina desta revisão é o v2.39.1.
+Não é necessário instalar Python, SWI-Prolog, Node.js, Elm ou Make no host
+para essa opção. A primeira construção precisa de internet para baixar
+imagens e dependências.
+
+Na raiz do repositório:
 
 ```sh
 docker compose up --build -d --wait
-docker compose run --build --rm testes
+```
+
+Acesse http://127.0.0.1:8000 ou http://127.0.0.1:8000/docs. O serviço `app`
+publica a porta apenas em `127.0.0.1`; `--wait` espera a verificação de saúde
+da API antes de concluir. Para acompanhar os logs e, depois, encerrar:
+
+```sh
+docker compose logs -f app
+# Ctrl + C encerra apenas o acompanhamento dos logs
 docker compose down
 ```
 
-Esse caminho exige Docker com Compose e dispensa instalar os runtimes no host.
-No Linux, `PORTA=8001 docker compose up --build -d --wait` muda a porta externa.
-O Dockerfile separa compilação Elm, instalação Python/Janus, aplicação e testes.
-A execução Docker não foi repetida nesta revisão; os resultados abaixo se
-referem ao fluxo local com Make.
+Se a porta 8000 estiver ocupada, no Linux/macOS:
 
-**Testado em:** Ubuntu 22.04.5 LTS, com compilação, execução das três suítes e
-interação no navegador integrado do Codex. A reprodução em uma máquina limpa
+```sh
+PORTA=8001 docker compose up --build -d --wait
+```
+
+No PowerShell:
+
+```powershell
+$env:PORTA = "8001"
+docker compose up --build -d --wait
+```
+
+Abra http://127.0.0.1:8001. O nome da variável no Compose é `PORTA`; no Make,
+o parâmetro é `PORT`. O contêiner continua usando a porta interna 8000.
+Após editar o código, reconstrua com `docker compose up --build -d --wait`;
+essa configuração não há sincronização automática dos arquivos do host.
+
+Execute todas as suítes no contêiner com:
+
+```sh
+docker compose run --build --rm testes
+```
+
+O serviço `testes` executa PlUnit, pytest e elm-test em sequência e retorna erro
+se uma suíte falhar. Ele não exige que o serviço `app` esteja em execução.
+Seu perfil evita que seja iniciado junto da aplicação no comando normal.
+
+O `Dockerfile` separa a compilação Elm, as dependências Python/Janus, a imagem
+da aplicação e a imagem de testes. A aplicação executa como usuário sem
+privilégios. Os arquivos `backend/uv.lock` e `frontend/package-lock.json`
+fixam as dependências utilizadas no build.
+
+**Validação da execução:** o fluxo local foi testado no Ubuntu 22.04.5 LTS,
+com compilação, 144 testes e geração de grades no navegador integrado do
+Codex. A configuração Compose foi conferida nesta revisão; o build e a
+execução dos contêineres não foram repetidos. A reprodução em máquina limpa
 e em outros sistemas operacionais ainda não foi verificada.
 
 ## 4. Arquitetura
@@ -115,6 +163,7 @@ Navegador / Elm  <-- HTTP + JSON -->  FastAPI / Python  <-- Janus -->  SWI-Prolo
 | Prolog | Gerar grades válidas, aplicar restrições e selecionar o Top 5 | `prolog/regras.pl`, `prolog/ranking.pl`, `prolog/turmas.pl` |
 | Elm | Gerenciar seleções e estado da tela, interpretar horários, enviar pedidos e apresentar resultados | `frontend/src/Main.elm`, `frontend/src/Types.elm`, `frontend/src/Codec.elm`, `frontend/src/Horario.elm`, `frontend/src/Semana.elm`, `frontend/src/GradeView.elm` |
 | Python | Expor rotas, validar o formato dos pedidos, preparar a oferta e converter dados entre JSON e Prolog | `backend/server.py` |
+| Empacotamento | Compilar e executar a aplicação e as suítes em contêineres separados | `Dockerfile`, `compose.yaml`, `scripts/testar.sh` |
 | Dados | Preservar o catálogo curricular e a oferta usada na geração | `backend/catalogo_unb.json`, `backend/oferta_sigaa_2026_2.json` |
 
 Na inicialização, o backend carrega os JSONs, converte carga horária em créditos
@@ -359,8 +408,8 @@ Após preencher os dados pendentes, executar o validador de forma do relatório:
 uv run scripts/validar_entrega.py
 ```
 
-Os campos pessoais, de GitHub, de IA e de entrega ainda estão pendentes nesta
-versão; por isso o relatório não deve ser considerado aprovado pelo validador.
+A validação final depende do preenchimento das turmas, usuários GitHub,
+versão de entrega, enquadramento do tema e dados da apresentação.
 
 ## 9. Limitações e problemas conhecidos
 
@@ -369,38 +418,44 @@ versão; por isso o relatório não deve ser considerado aprovado pelo validador
 - Datas de vigência diferentes são tratadas como parte de uma mesma semana. Isso pode descartar combinações que só se sobrepõem no horário, mas ocorrem em partes distintas do semestre.
 - Pré-requisito vazio ou ausente no JSON vira ausência de restrição. O parser aceita o formato de grupos “e/ou” do catálogo, não expressões booleanas arbitrárias.
 - O Top 5 enumera todas as grades válidas antes de ordenar. Muitas disciplinas com muitas turmas podem tornar a busca lenta e consumir memória; não há limite de tempo configurado.
-- O ranking mede janelas em períodos, não em minutos. Com pesos personalizados, a preferência por menos janelas depende dos pesos escolhidos; ela só tem prioridade garantida com a ponderação padrão 7 e 1.
+- O ranking mede janelas em períodos, não em minutos. A ponderação padrão 7 e 1 garante prioridade a menos janelas; com pesos personalizados, essa prioridade depende da relação entre os pesos escolhidos.
 - Os limites padrão são 2 a 32 créditos. Há limites configuráveis no predicado `grade/6`, mas a interface não os expõe.
 - A ausência de solução não informa qual restrição causou o problema. Também não há persistência das seleções após recarregar a página.
-- Faltam testes automatizados de HTTP, de `Main.update` e do fluxo completo no navegador, além de verificação em ambiente limpo.
 
-Com mais tempo, as prioridades seriam explicar a ausência de soluções,
+
+as prioridades seriam explicar a ausência de soluções,
 modelar a vigência das turmas, ampliar os testes de integração e melhorar a
 busca do ranking sem precisar materializar todas as soluções.
 
 ## 10. Contribuição de cada integrante
 
-Síntese baseada no histórico de commits, sujeita à revisão de todos os
-integrantes. Completar os nomes da seção 1 também nesta tabela.
+As contribuições abaixo correspondem aos integrantes informados e ao histórico
+de commits do repositório. As contribuições de outros autores são reconhecidas
+na seção 11.
 
 | Integrante | Principais contribuições |
 |------------|--------------------------|
-| Yasmim Rosa | Organização inicial, regras Prolog, base demonstrativa e testes de regras; commits `a43fe5e`, `60d5b62` e `ab271c0` |
-| GabrielMEsteves | Métricas, classificação e Top 5 em Prolog, com testes de ranking; commit `c9cc227`. Conteinerização, fluxo de testes em Docker e dependências npm em `f2957c7` |
-| Filipe | Estado inicial da aplicação Elm, mensagens, atualização e integração HTTP; commit `d6a3b6d` |
-| jmarquees | Filtros de disciplinas e seleção de horários bloqueados; commit `582aa4b`. Pesos configuráveis no Elm, na API e no Prolog, com validação e testes, em `f6c18d1` e `4ce2430` |
-| Cibelly Lourenço Ferreira | Tipos e leitura de horários, codecs JSON, distribuição semanal, GradeView, estilos da grade, demonstração e 73 testes Elm; série de commits de `67263c2` a `ca80575` |
-| Fabio Gabriel | Integração de GradeView com a API, catálogo e oferta SIGAA, requisitos compostos, padronização visual, correção de compilação, 21 testes adicionais e documentação; commits `75cb368`, `ee754d0`, `426e6f3`, `171684f`, `66df144`, `4ad5de8`, `c01c3ae` e `c2e9cf5`. Fluxo de Make e preenchimento inicial deste relatório em `45f818c`; atualização técnica após o merge da main |
-
+| Gabriel Felipe Mesquita Esteves | Métricas, classificação e Top 5 em Prolog, com testes de ranking; commit `c9cc227`. Conteinerização, fluxo de testes em Docker e dependências npm em `f2957c7` |
+| Filipe Carvalho da Silva | Estado inicial da aplicação Elm, mensagens, atualização e integração HTTP; commit `d6a3b6d` |
+| Joao Victor Marques Reis de Miranda | Filtros de disciplinas e horários bloqueados em `582aa4b`. Pesos configuráveis no Elm, na API e no Prolog, com validação e testes, em `f6c18d1` e `4ce2430` |
+| Yasmim Oliveira Rosa | Organização inicial, regras Prolog, base demonstrativa e testes de regras; commits `a43fe5e`, `60d5b62` e `ab271c0` |
+| Cibelly Lourenço Ferreira | Interpretação de horários, codecs JSON, distribuição semanal, GradeView, estilos da grade, demonstração e testes Elm; commits de `67263c2` a `ca80575` |
+| Fabio Gabriel da Silva Barbosa | Integração de GradeView com a API, catálogo e oferta SIGAA, requisitos compostos, padronização visual, correção de compilação, 21 testes adicionais e documentação; commits `75cb368`, `ee754d0`, `426e6f3`, `171684f`, `66df144`, `4ad5de8`, `c01c3ae` e `c2e9cf5`. Fluxo de Make e relatório em `45f818c`, integração com a main e atualização da documentação em `e533b84` |
 
 ## 11. Fontes, código de terceiros e uso de IA
 
-**Código reaproveitado.** O projeto
-não partiu do código do Sudoku, mas adotamos a arquitetura Elm–FastAPI–Janus–Prolog.
-Os scripts de avaliação em `scripts/` foram incorporados como ferramentas
-fornecidas pelo professor. Não são contabilizados como implementação própria
-das funcionalidades do planejador. O grupo ainda deve confirmar outras
-origens ou adaptações de código: [Complementar código reaproveitado].
+**Código reaproveitado e créditos.** O projeto não partiu do código do Sudoku,
+mas adotou a arquitetura Elm–FastAPI–Janus–Prolog. Os scripts de avaliação do
+professor foram incorporados ao diretório `scripts/`; o script `scripts/testar.sh`
+faz parte do fluxo de testes Docker do projeto.
+
+O histórico também registra a contribuição de um autor que não está na
+composição atual dos seis integrantes informados para a entrega:
+
+- **Johan Marcos Gomes da Rocha:** configuração Python com uv, API FastAPI–Janus, entrega do frontend e correção de dependências Elm; commits `0084a55`, `e154b15`, `de70c74`, `9068189` e `0bedc30`. O rascunho de relatório no commit `894c047`, em outra branch, também serviu de referência para a documentação.
+
+Essas contribuições permanecem creditadas a Johan e não são atribuídas aos
+integrantes da tabela anterior.
 
 **Referências e fontes dos dados.**
 
@@ -411,11 +466,21 @@ origens ou adaptações de código: [Complementar código reaproveitado].
 
 **Uso de ferramentas de IA.**
 
-- **Faixa de uso no código:** [Preencher pelo grupo]
+A IA ajudou a equipe a montar o código, incluindo a geração e o ajuste de
+trechos da implementação. Seu uso também apoiou a análise de erros, os testes
+e a documentação. Os resultados foram conferidos pela compilação, pelos
+testes automatizados e pela execução dos fluxos da aplicação.
+
+- **Faixa de uso no código:** auxiliar
 
 | Ferramenta | Para que foi usada | Como o grupo verificou o resultado |
 |------------|--------------------|------------------------------------|
-| [Ferramenta] | [Uso da ferramenta] | [Verificação realizada] |
+| Codex (OpenAI) | Auxílio na montagem do código, com geração e ajuste de trechos, integração entre componentes, correção de erros, criação de testes, configuração do Makefile e organização da documentação | Compilação do Elm, execução das suítes PlUnit, pytest e elm-test, consultas à API com Prolog real e verificação da geração de grades no navegador |
+
+Na contribuição de Johan citada acima, o rascunho `894c047` declara auxílio
+do Claude (Anthropic) na API e na documentação, com teste da API contra o
+Prolog real. Esse registro é mantido como informação de origem do material
+incorporado.
 
 ## 12. Apresentação oral
 

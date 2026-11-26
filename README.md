@@ -3,7 +3,8 @@
 O [relatório de entrega](RELATORIO.md) segue as 13 seções do modelo da disciplina:
 identificação, resumo, execução, arquitetura, Prolog, Elm, integração, testes,
 limitações, contribuições, fontes e IA, apresentação e reflexão.
-Os campos de GitHub, IA e demais dados pendentes serão completados pelo grupo.
+O relatório identifica a equipe GradeHoráriaGX, declara o auxílio de IA e
+descreve as opções de execução local com Make e em contêineres com Docker.
 
 ![Interface do planejador com uma grade gerada pela oferta real](docs/captura.png)
 
