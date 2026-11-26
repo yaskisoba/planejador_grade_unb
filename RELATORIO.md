@@ -16,7 +16,7 @@ Relatório do grupo GradeHoráriaGX para o trabalho final de Paradigmas de Progr
 - **Nome do projeto:** Planejador de Grade Horária da UnB
 - **Nome do grupo:** GradeHoráriaGX
 - **Repositório:** https://github.com/yaskisoba/planejador_grade_unb
-- **Commit ou tag entregue:** [Commit ou tag final]
+- **Commit ou tag entregue:** v1.0-entrega
 - **Ponto de partida:** jogo inventado
 - **Slides da apresentação oral:** (https://canva.link/oa6g6is5446x5zd)
 
