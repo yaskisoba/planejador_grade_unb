@@ -80,6 +80,9 @@ grade_sintetica_repetida(Grade) :-
 grade_empatada([turma(teste, Id, "Teste", ['2M1'], 1)]) :-
     member(Id, [b, a, a]).
 
+grade_ponderada([turma(teste, janela, "Teste", ['2M13'], 1)]).
+grade_ponderada([turma(teste, concentrada, "Teste", ['2M1', '3M1'], 1)]).
+
 resumo(Resultados, Resumo) :-
     findall(Pontuacao-Janelas-Dias-Ids,
             ( member(resultado(Pontuacao, Janelas, Dias, Grade), Resultados),
@@ -102,6 +105,11 @@ test(empate_preserva_grades_distintas_em_ordem_estavel) :-
     ranking:melhores_cinco(plunit_ranking:grade_empatada, Top5),
     resumo(Top5, Resumo),
     assertion(Resumo == [1-0-1-[teste-a], 1-0-1-[teste-b]]).
+
+test(pesos_personalizados_alteram_ordenacao_e_pontuacao) :-
+    ranking:melhores_cinco(plunit_ranking:grade_ponderada, 1, 2, Top5),
+    resumo(Top5, Resumo),
+    assertion(Resumo == [3-1-1-[teste-janela], 4-0-2-[teste-concentrada]]).
 
 test(integracao_com_regras_e_menos_de_cinco_resultados) :-
     top_5_grades(['FGA0158'], ['FGA0210', 'FGA0244'], [], Top5),

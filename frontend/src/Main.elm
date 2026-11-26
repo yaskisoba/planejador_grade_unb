@@ -24,6 +24,8 @@ type alias Model =
     , catalogo : EstadoCatalogo
     , buscaCursadas : String
     , buscaDesejadas : String
+    , pesoJanelasTexto : String
+    , pesoDiasTexto : String
     }
 
 
@@ -48,6 +50,8 @@ type Msg
     | SelecionouOpcao Int
     | BuscouCursadas String
     | BuscouDesejadas String
+    | AlterouPesoJanelas String
+    | AlterouPesoDias String
     | CarregarCatalogo
     | RecebeuCatalogo (Result Http.Error Catalogo)
     | RecebeuResposta (Result Http.Error (List Grade))
@@ -71,6 +75,8 @@ init _ =
       , catalogo = CarregandoCatalogo
       , buscaCursadas = ""
       , buscaDesejadas = ""
+      , pesoJanelasTexto = "3"
+      , pesoDiasTexto = "2"
       }
     , pedirCatalogo
     )
@@ -132,6 +138,20 @@ update msg model =
         BuscouDesejadas busca ->
             ( { model | buscaDesejadas = busca }, Cmd.none )
 
+        AlterouPesoJanelas valor ->
+            let
+                atualizado =
+                    aplicarPeso (\requisicao peso -> { requisicao | pesoJanelas = peso }) valor model
+            in
+            ( { atualizado | pesoJanelasTexto = valor }, Cmd.none )
+
+        AlterouPesoDias valor ->
+            let
+                atualizado =
+                    aplicarPeso (\requisicao peso -> { requisicao | pesoDias = peso }) valor model
+            in
+            ( { atualizado | pesoDiasTexto = valor }, Cmd.none )
+
         CarregarCatalogo ->
             ( { model | catalogo = CarregandoCatalogo }, pedirCatalogo )
 
@@ -178,6 +198,24 @@ alternar item itens =
 
     else
         itens ++ [ item ]
+
+
+aplicarPeso : (Request -> Int -> Request) -> String -> Model -> Model
+aplicarPeso atualizar valor model =
+    let
+        requisicao =
+            case String.toInt valor of
+                Just peso ->
+                    if peso >= 0 then
+                        atualizar model.requisicao peso
+
+                    else
+                        model.requisicao
+
+                Nothing ->
+                    model.requisicao
+    in
+    { model | requisicao = requisicao, estado = Pronto }
 
 
 pedirCatalogo : Cmd Msg
@@ -236,8 +274,24 @@ podeGerarGrades model =
                 /= Carregando
                 && not (List.isEmpty model.requisicao.desejadas)
                 && List.isEmpty (desejadasSemTurma model)
+                && pesosValidos model
 
         _ ->
+            False
+
+
+pesosValidos : Model -> Bool
+pesosValidos model =
+    pesoValido model.pesoJanelasTexto && pesoValido model.pesoDiasTexto
+
+
+pesoValido : String -> Bool
+pesoValido texto =
+    case String.toInt texto of
+        Just peso ->
+            peso >= 0
+
+        Nothing ->
             False
 
 
@@ -279,6 +333,7 @@ view model =
                     [ text (String.fromInt (List.length model.requisicao.bloqueados) ++ " períodos bloqueados") ]
                 ]
             , viewGradeSemanal model.requisicao.bloqueados ocupado
+            , viewPesos model ocupado
             , div [ class "app-acao" ]
                 [ div []
                     [ p [ class "app-acao-titulo" ] [ text "Tudo pronto para montar sua grade?" ]
@@ -289,6 +344,9 @@ view model =
 
                              else if not (List.isEmpty semTurma) then
                                 "Sem turma cadastrada: " ++ String.join ", " (List.map .codigo semTurma) ++ ". Desmarque essas disciplinas para continuar."
+
+                             else if not (pesosValidos model) then
+                                 "Informe pesos inteiros maiores ou iguais a zero."
 
                              else
                                 String.fromInt (List.length model.requisicao.desejadas) ++ " disciplina(s) desejada(s). Vamos buscar combinações sem conflitos."
@@ -324,6 +382,41 @@ view model =
                 )
             ]
             [ viewEstado model ]
+        ]
+
+
+viewPesos : Model -> Bool -> Html Msg
+viewPesos model ocupado =
+    div [ class "pesos", attribute "aria-labelledby" "pesos-titulo" ]
+        [ h3 [ attribute "id" "pesos-titulo" ] [ text "Preferências de ranking" ]
+        , p [ class "app-ajuda" ]
+            [ text "Aumente o peso de um critério para que ele influencie mais a pontuação; use 0 para ignorá-lo." ]
+        , div [ class "pesos-campos" ]
+            [ label [ class "peso-campo" ]
+                [ text "Peso das janelas entre aulas"
+                , input
+                    [ type_ "number"
+                    , attribute "min" "0"
+                    , attribute "step" "1"
+                    , value model.pesoJanelasTexto
+                    , disabled ocupado
+                    , onInput AlterouPesoJanelas
+                    ]
+                    []
+                ]
+            , label [ class "peso-campo" ]
+                [ text "Peso dos dias no campus"
+                , input
+                    [ type_ "number"
+                    , attribute "min" "0"
+                    , attribute "step" "1"
+                    , value model.pesoDiasTexto
+                    , disabled ocupado
+                    , onInput AlterouPesoDias
+                    ]
+                    []
+                ]
+            ]
         ]
 
 

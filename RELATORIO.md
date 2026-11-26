@@ -24,8 +24,8 @@ As contribuições e a reflexão devem ser revisadas pelos integrantes antes da 
 
 O sistema é um planejador acadêmico. Como as faixas do modelo se referem a
 jogos, o enquadramento e a aprovação do tema precisam ser confirmados com o
-professor. A versão final ainda deve incluir as alterações de documentação e
-do Makefile; o commit anterior não representa esta entrega completa.
+professor. O commit ou tag de entrega deve ser definido depois de concluir a revisão
+do relatório e incorporar as atualizações da main.
 
 ## 2. Resumo
 
@@ -48,7 +48,7 @@ desejada e nenhum bloqueio. A primeira opção corresponde à turma `01`.
 - Node.js 22.17.0 e npm 10.9.2.
 - uv 0.12.13 e Python 3.13.11; o projeto exige Python >= 3.12.
 - GNU Make 4.3.
-- Elm 0.19.2 e elm-test 0.19.2-1, obtidos pelo npm com versões fixadas no Makefile.
+- Elm 0.19.2 e elm-test 0.19.2-0, instalados por `npm ci` com as versões de `frontend/package-lock.json`.
 
 **Instalação e execução**, na raiz do repositório:
 
@@ -83,6 +83,20 @@ make test-frontend
 
 O primeiro comando executa todas as suítes; os seguintes executam cada camada
 separadamente. Não é necessário manter o servidor aberto.
+
+**Alternativa com Docker Compose:**
+
+```sh
+docker compose up --build -d --wait
+docker compose run --build --rm testes
+docker compose down
+```
+
+Esse caminho exige Docker com Compose e dispensa instalar os runtimes no host.
+No Linux, `PORTA=8001 docker compose up --build -d --wait` muda a porta externa.
+O Dockerfile separa compilação Elm, instalação Python/Janus, aplicação e testes.
+A execução Docker não foi repetida nesta revisão; os resultados abaixo se
+referem ao fluxo local com Make.
 
 **Testado em:** Ubuntu 22.04.5 LTS, com compilação, execução das três suítes e
 interação no navegador integrado do Codex. A reprodução em uma máquina limpa
@@ -123,8 +137,9 @@ parcialmente instanciado.
 | `grade/6`: `grade(+Cursadas, +Desejadas, +Bloqueados, +Min, +Max, -Grade)` | `prolog/regras.pl:87` | Gera uma turma por disciplina, respeitando todas as restrições; `grade/4` usa 2 a 32 créditos |
 | `turma_disponivel/4`: `turma_disponivel(+Bloqueados, +Codigo, -Turma, -Slots)` | `prolog/regras.pl:105` | Filtra vagas positivas e períodos não bloqueados |
 | `compativeis/4`: `compativeis(+OpcoesA, ?EscolhaA, +OpcoesB, ?EscolhaB)` | `prolog/regras.pl:121` | Restringe dois índices de escolha aos pares de turmas sem choque |
-| `metricas_grade/3`: `metricas_grade(+Grade, -Janelas, -DiasCampus)` | `prolog/ranking.pl:21` | Conta períodos livres entre aulas do mesmo dia e dias com aula |
-| `top_5_grades/4`: `top_5_grades(+Cursadas, +Desejadas, +Bloqueados, -Top5)` | `prolog/ranking.pl:57` | Ordena todas as soluções e retorna até cinco, com pontuação `7 * Janelas + DiasCampus` |
+| `metricas_grade/3`: `metricas_grade(+Grade, -Janelas, -DiasCampus)` | `prolog/ranking.pl:22` | Conta períodos livres entre aulas do mesmo dia e dias com aula |
+| `top_5_grades/4`: `top_5_grades(+Cursadas, +Desejadas, +Bloqueados, -Top5)` | `prolog/ranking.pl:61` | Ordena todas as soluções e retorna até cinco, com pesos padrão 7 e 1 |
+| `top_5_grades_pesos/6`: `top_5_grades_pesos(+Cursadas, +Desejadas, +Bloqueados, +PesoJanelas, +PesoDias, -Top5)` | `prolog/ranking.pl:73` | Ordena as grades com os pesos informados pela API |
 | `carregar_oferta/3`: `carregar_oferta(+Disciplinas, +Turmas, +Requisitos)` | `prolog/turmas.pl:27` | Substitui os fatos da oferta com transação, preservando a base anterior se a carga falhar |
 
 ### 5.2 Conceitos do paradigma lógico utilizados
@@ -133,10 +148,10 @@ parcialmente instanciado.
 - [x] **Unificação:** a cabeça de `turma_disponivel/4` decompõe o termo `turma/5` em `prolog/regras.pl:105`.
 - [x] **Recursão sobre listas:** `sem_choques/2` compara cada disciplina com as seguintes em `prolog/regras.pl:116`.
 - [x] **Backtracking:** `label/1` enumera escolhas que satisfazem os domínios e as restrições em `prolog/regras.pl:98`.
-- [x] **Coleta de soluções:** `findall/3` reúne opções em `prolog/regras.pl:102` e grades em `prolog/ranking.pl:66`; o projeto não usa `bagof/3` nem `setof/3`.
+- [x] **Coleta de soluções:** `findall/3` reúne opções em `prolog/regras.pl:102` e grades em `prolog/ranking.pl:79`; o projeto não usa `bagof/3` nem `setof/3`.
 - [x] **Corte e negação:** o corte em `digitos//1` consome a sequência de dígitos (`prolog/regras.pl:46`); `\+ memberchk/2` rejeita disciplina cursada (`prolog/regras.pl:67`), com a lista já instanciada.
 - [x] **CLP(FD):** soma e limites de créditos, domínio dos índices de turmas e tabela de pares permitidos com `tuples_in/2` em `prolog/regras.pl:75`, `prolog/regras.pl:111` e `prolog/regras.pl:121`.
-- [x] **Ordem superior:** `maplist/3`, `include/3` e aplicação parcial em `prolog/regras.pl:71`; `call/2` permite reutilizar o ranking com diferentes geradores em `prolog/ranking.pl:66`.
+- [x] **Ordem superior:** `maplist/3`, `include/3` e aplicação parcial em `prolog/regras.pl:71`; `call/2` permite reutilizar o ranking com diferentes geradores em `prolog/ranking.pl:79`.
 - [x] **DCG e transações:** gramática para horários em `prolog/regras.pl:41` e atualização atômica da oferta em `prolog/turmas.pl:27`.
 
 ### 5.3 Trecho em destaque
@@ -178,6 +193,8 @@ type alias Model =
     , catalogo : EstadoCatalogo
     , buscaCursadas : String
     , buscaDesejadas : String
+    , pesoJanelasTexto : String
+    , pesoDiasTexto : String
     }
 
 type Estado
@@ -199,6 +216,8 @@ type Msg
     | SelecionouOpcao Int
     | BuscouCursadas String
     | BuscouDesejadas String
+    | AlterouPesoJanelas String
+    | AlterouPesoDias String
     | CarregarCatalogo
     | RecebeuCatalogo (Result Http.Error Catalogo)
     | RecebeuResposta (Result Http.Error (List Grade))
@@ -207,7 +226,9 @@ type Msg
 Os custom types tornam os estados de cada requisição mutuamente exclusivos:
 `estado` não pode ser `Carregando` e `Falhou` simultaneamente. O erro carrega
 sua mensagem; o sucesso carrega as grades. Catálogo e geração têm ciclos
-independentes. `Result` obriga o `update` a tratar sucesso e falha HTTP.
+independentes. Os pesos mantêm o texto digitado separado do inteiro válido;
+`pesosValidos` desabilita a geração se houver texto vazio, negativo ou não inteiro.
+`Result` obriga o `update` a tratar sucesso e falha HTTP.
 
 O domínio também usa `Dia`, `Turno` e os tipos opacos `Periodo` e `Horario`
 em `frontend/src/Horario.elm:26`. A leitura de um horário devolve `Maybe Horario`,
@@ -221,14 +242,14 @@ de cursadas e desejadas é mantida por `alterarSelecao`, não pelo tipo `Request
 
 ### 6.2 Conceitos do paradigma funcional utilizados
 
-- [x] **Arquitetura Elm:** `Browser.element` liga `init`, `update` e `view` em `frontend/src/Main.elm:56`.
-- [x] **Custom types e `case` exaustivo:** `Estado` e `Msg` em `frontend/src/Main.elm:30`; `Conteudo` em `frontend/src/Semana.elm:32`.
-- [x] **Maybe e Result:** `Horario.deTexto` em `frontend/src/Horario.elm:243` e mensagens HTTP em `frontend/src/Main.elm:43`.
-- [x] **Ordem superior e aplicação parcial:** `List.filter ((/=) codigo)` em `frontend/src/Main.elm:145`; `lerTodos (lerPeriodo valor)` em `frontend/src/Horario.elm:243`.
+- [x] **Arquitetura Elm:** `Browser.element` liga `init`, `update` e `view` em `frontend/src/Main.elm:60`.
+- [x] **Custom types e `case` exaustivo:** `Estado` e `Msg` em `frontend/src/Main.elm:32`; `Conteudo` em `frontend/src/Semana.elm:32`.
+- [x] **Maybe e Result:** `Horario.deTexto` em `frontend/src/Horario.elm:243` e mensagens HTTP em `frontend/src/Main.elm:45`.
+- [x] **Ordem superior e aplicação parcial:** `List.filter ((/=) codigo)` em `frontend/src/Main.elm:165`; `lerTodos (lerPeriodo valor)` em `frontend/src/Horario.elm:243`.
 - [x] **Composição:** pipelines com `|>` em `frontend/src/Semana.elm:43` e `>>` no encoder de `frontend/src/Codec.elm:31`.
 - [x] **JSON tipado:** `Types.encodeRequest` e `Types.decodeCatalogo` em `frontend/src/Types.elm`; `Codec.respostaDecoder` em `frontend/src/Codec.elm:70`.
-- [x] **Efeitos controlados:** HTTP retorna `Cmd Msg` em `frontend/src/Main.elm:183`. A aplicação declara `subscriptions = always Sub.none`; não há assinaturas de eventos externos ativas.
-- [x] **Imutabilidade:** `update` produz novos records e comandos em `frontend/src/Main.elm:89`.
+- [x] **Efeitos controlados:** HTTP retorna `Cmd Msg` em `frontend/src/Main.elm:221`. A aplicação declara `subscriptions = always Sub.none`; não há assinaturas de eventos externos ativas.
+- [x] **Imutabilidade:** `update` produz novos records e comandos em `frontend/src/Main.elm:95`.
 - [x] **Encapsulamento:** os construtores de `Horario` e `Periodo` não são expostos pelo módulo `frontend/src/Horario.elm:1`.
 
 ### 6.3 Trecho em destaque
@@ -274,7 +295,7 @@ Rotas implementadas em `backend/server.py:111`:
 | `GET /api/saude` | Nenhuma | `{"status":"ok"}` | Nenhum |
 | `GET /api/disciplinas` | Nenhuma | Matriz, fontes, período e disciplinas com créditos e indicação de turmas | Nenhum; lê o catálogo em memória |
 | `GET /api/turmas` | Código opcional em `?codigo=FGA0210` | Oferta do semestre, horários e vagas | Nenhum; lê a oferta em memória |
-| `POST /api/gerar-grades` | Listas `cursadas`, `desejadas`, `bloqueados`; pesos opcionais | Objeto `grades`, com ranking, métricas e turmas | `ranking:top_5_grades/4` |
+| `POST /api/gerar-grades` | Listas `cursadas`, `desejadas`, `bloqueados`; pesos opcionais | Objeto `grades`, com ranking, métricas e turmas | `ranking:top_5_grades_pesos/6` |
 | Inicialização da API | Disciplinas, turmas e grupos de requisitos dos JSONs | Base Prolog carregada ou falha na inicialização | `turmas:carregar_oferta/3` |
 
 Exemplo de requisição:
@@ -290,22 +311,24 @@ Exemplo de requisição:
 Cada item de `grades` contém `rank`, `score`, `janelas`, `dias_campus` e
 `turmas`; cada turma contém `codigo`, `turma` e `horarios`. O Janus recebe
 argumentos separados da consulta, e a consulta converte os termos Prolog em
-listas antes da serialização (`backend/server.py:98`). Um lock serializa as
+listas antes da serialização (`backend/server.py:99`). Um lock serializa as
 chamadas ao motor.
 
 Sem combinação válida, a API devolve `{"grades":[]}`. Desejadas vazias geram
 HTTP 400. O Pydantic trata erros de formato com HTTP 422; isso não equivale a
-validar todos os códigos e horários do domínio. Os pesos recebidos não alteram
-o ranking atual, que usa sempre `7 * janelas + dias`.
+validar todos os códigos e horários do domínio. A pontuação é
+`peso_janelas * janelas + peso_dias * dias_campus`. A API usa 7 e 1 por padrão;
+a interface inicia com 3 e 2. Os pesos precisam ser inteiros não negativos;
+zero ignora o respectivo critério.
 
 ## 8. Testes e validação
 
-Execução verificada em 25/11/2026: `make test` concluiu com 141 testes passando.
+Execução verificada em 25/11/2026: `make test` concluiu com 144 testes passando.
 
 | Suíte | Quantidade | Cobertura |
 |-------|------------|-----------|
-| PlUnit | 61 | 22 casos de regras, 29 de ranking e 10 de carregamento da oferta em `prolog/tests/` |
-| pytest | 7 | Parser de requisitos e integração Python–Janus–Prolog com a oferta real em `backend/tests/test_oferta.py` |
+| PlUnit | 62 | 22 casos de regras, 30 de ranking e 10 de carregamento da oferta em `prolog/tests/` |
+| pytest | 9 | Parser de requisitos e integração Python–Janus–Prolog com a oferta real em `backend/tests/test_oferta.py` |
 | elm-test | 73 | Horários, JSON, células semanais, janelas, choques e visualização em `frontend/tests/` |
 
 Casos de borda incluem horários inválidos, repetidos e fora de ordem,
@@ -317,7 +340,9 @@ recarga sem duplicatas e preservação da base anterior após falha, usando
 
 Na oferta real, o pytest verifica as turmas `01`, `02` e `03` de `FGA0210`,
 a exclusão da turma `01` ao bloquear `3T4` e a falta de resultados quando um
-pré-requisito está ausente. Os testes chamam a função do endpoint diretamente;
+pré-requisito está ausente. Também verifica a pontuação com pesos enviados e
+a rejeição de peso negativo; o PlUnit verifica a mudança de ordem com pesos
+personalizados. Os testes chamam a função do endpoint diretamente;
 não constituem uma suíte de transporte HTTP ou de navegador. Os testes Elm
 não cobrem o ciclo completo de `Main.update` nem diretamente o encoder
 `Types.encodeRequest`, usado pela tela.
@@ -344,7 +369,7 @@ versão; por isso o relatório não deve ser considerado aprovado pelo validador
 - Datas de vigência diferentes são tratadas como parte de uma mesma semana. Isso pode descartar combinações que só se sobrepõem no horário, mas ocorrem em partes distintas do semestre.
 - Pré-requisito vazio ou ausente no JSON vira ausência de restrição. O parser aceita o formato de grupos “e/ou” do catálogo, não expressões booleanas arbitrárias.
 - O Top 5 enumera todas as grades válidas antes de ordenar. Muitas disciplinas com muitas turmas podem tornar a busca lenta e consumir memória; não há limite de tempo configurado.
-- A pontuação é fixa e mede janelas em períodos, não em minutos. `peso_janelas` e `peso_dias` são aceitos pela API, mas ignorados pelo motor.
+- O ranking mede janelas em períodos, não em minutos. Com pesos personalizados, a preferência por menos janelas depende dos pesos escolhidos; ela só tem prioridade garantida com a ponderação padrão 7 e 1.
 - Os limites padrão são 2 a 32 créditos. Há limites configuráveis no predicado `grade/6`, mas a interface não os expõe.
 - A ausência de solução não informa qual restrição causou o problema. Também não há persistência das seleções após recarregar a página.
 - Faltam testes automatizados de HTTP, de `Main.update` e do fluxo completo no navegador, além de verificação em ambiente limpo.
@@ -361,11 +386,11 @@ integrantes. Completar os nomes da seção 1 também nesta tabela.
 | Integrante | Principais contribuições |
 |------------|--------------------------|
 | Yasmim Rosa | Organização inicial, regras Prolog, base demonstrativa e testes de regras; commits `a43fe5e`, `60d5b62` e `ab271c0` |
-| GabrielMEsteves | Métricas, classificação e Top 5 em Prolog, com testes de ranking; commit `c9cc227` |
+| GabrielMEsteves | Métricas, classificação e Top 5 em Prolog, com testes de ranking; commit `c9cc227`. Conteinerização, fluxo de testes em Docker e dependências npm em `f2957c7` |
 | Filipe | Estado inicial da aplicação Elm, mensagens, atualização e integração HTTP; commit `d6a3b6d` |
-| jmarquees | Filtros de disciplinas e seleção de horários bloqueados; commit `582aa4b` |
+| jmarquees | Filtros de disciplinas e seleção de horários bloqueados; commit `582aa4b`. Pesos configuráveis no Elm, na API e no Prolog, com validação e testes, em `f6c18d1` e `4ce2430` |
 | Cibelly Lourenço Ferreira | Tipos e leitura de horários, codecs JSON, distribuição semanal, GradeView, estilos da grade, demonstração e 73 testes Elm; série de commits de `67263c2` a `ca80575` |
-| Fabio Gabriel | Integração de GradeView com a API, catálogo e oferta SIGAA, requisitos compostos, padronização visual, correção de compilação, 21 testes adicionais e documentação; commits `75cb368`, `ee754d0`, `426e6f3`, `171684f`, `66df144`, `4ad5de8`, `c01c3ae` e `c2e9cf5`. Fluxo atual de Make e atualização deste relatório ainda sem commit |
+| Fabio Gabriel | Integração de GradeView com a API, catálogo e oferta SIGAA, requisitos compostos, padronização visual, correção de compilação, 21 testes adicionais e documentação; commits `75cb368`, `ee754d0`, `426e6f3`, `171684f`, `66df144`, `4ad5de8`, `c01c3ae` e `c2e9cf5`. Fluxo de Make e preenchimento inicial deste relatório em `45f818c`; atualização técnica após o merge da main |
 
 
 ## 11. Fontes, código de terceiros e uso de IA

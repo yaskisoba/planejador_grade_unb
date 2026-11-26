@@ -1,0 +1,16 @@
+.git
+.agents
+.codex
+.aws
+**/.venv
+**/node_modules
+**/elm-stuff
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+frontend/build
+frontend/demo
+docs
+*.pdf
+.env
+.env.*

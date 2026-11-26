@@ -2,8 +2,6 @@
 
 HOST ?= 127.0.0.1
 PORT ?= 8000
-ELM := npx --yes --package elm@0.19.2-0 elm
-ELM_TEST := npx --yes --package elm@0.19.2-0 --package elm-test@0.19.2-1 elm-test
 PROLOG_TESTS := $(sort $(wildcard prolog/tests/*.pl))
 
 .PHONY: help check install build dev test test-prolog test-backend test-frontend
@@ -20,16 +18,17 @@ help:
 
 check:
 	@command -v uv >/dev/null || { echo "Instale o uv antes de continuar (veja o README)."; exit 1; }
-	@command -v npx >/dev/null || { echo "Instale Node.js e npm antes de continuar."; exit 1; }
+	@command -v npm >/dev/null || { echo "Instale Node.js e npm antes de continuar."; exit 1; }
 	@command -v swipl >/dev/null || { echo "Instale SWI-Prolog >= 9.1.12 antes de continuar."; exit 1; }
 	@swipl -q -g 'current_prolog_flag(version, V), (V >= 90112 -> halt(0) ; writeln(user_error, "SWI-Prolog >= 9.1.12 é necessário para janus-swi."), halt(1))'
 
 install: check
 	cd backend && uv sync --locked
+	cd frontend && npm ci --no-audit --no-fund
 	$(MAKE) build
 
 build:
-	cd frontend && $(ELM) make src/Main.elm --output=build/index.html
+	cd frontend && npm run build
 
 dev: check build
 	cd backend && uv run --locked uvicorn server:app --reload --host $(HOST) --port $(PORT)
@@ -43,4 +42,4 @@ test-backend:
 	cd backend && uv run --locked pytest -q
 
 test-frontend:
-	cd frontend && $(ELM_TEST)
+	cd frontend && npm test
